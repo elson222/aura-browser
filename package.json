@@ -1,6 +1,6 @@
 {
   "name": "fullscreen-browser",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A completely fullscreen borderless browser application with an overlay search bar.",
   "main": "main.js",
   "scripts": {

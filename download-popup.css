@@ -10,15 +10,15 @@
 }
 
 :root {
-  --accent: #7b2cbf;
-  --accent-light: #9d4edd;
-  --accent-dark: #5a189a;
-  --accent-glow: rgba(123, 44, 191, 0.35);
-  --bg-container: rgba(18, 14, 32, 0.92);
-  --bg-item: rgba(255, 255, 255, 0.04);
-  --bg-item-hover: rgba(255, 255, 255, 0.07);
+  --accent: #ffffff;
+  --accent-light: #cccccc;
+  --accent-dark: #888888;
+  --accent-glow: rgba(255, 255, 255, 0.08);
+  --bg-container: rgba(10, 10, 10, 0.95);
+  --bg-item: rgba(255, 255, 255, 0.03);
+  --bg-item-hover: rgba(255, 255, 255, 0.06);
   --border-subtle: rgba(255, 255, 255, 0.06);
-  --border-accent: rgba(123, 44, 191, 0.25);
+  --border-accent: rgba(255, 255, 255, 0.15);
   --text-primary: rgba(255, 255, 255, 0.92);
   --text-secondary: rgba(255, 255, 255, 0.55);
   --text-tertiary: rgba(255, 255, 255, 0.35);
@@ -313,7 +313,7 @@ html, body {
 }
 
 .quality-select option {
-  background: #1a1530;
+  background: #0a0a0a;
   color: var(--text-primary);
 }
 
@@ -341,11 +341,14 @@ html, body {
   border: none;
   border-radius: var(--radius-sm);
   background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-  color: #fff;
+  color: #000000;
   cursor: pointer;
   flex-shrink: 0;
   transition: all var(--transition-fast);
   box-shadow: 0 2px 6px var(--accent-glow);
+}
+.download-btn svg {
+  color: #000000 !important;
 }
 
 .download-btn:hover {
@@ -448,13 +451,16 @@ html, body {
   border: none;
   border-radius: var(--radius-sm);
   background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-  color: #fff;
+  color: #000000;
   font-family: 'Outfit', sans-serif;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
   box-shadow: 0 2px 10px var(--accent-glow);
+}
+.download-all-btn svg {
+  color: #000000 !important;
 }
 
 .download-all-btn:hover {

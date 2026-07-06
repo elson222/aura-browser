@@ -956,6 +956,26 @@ ipcMain.on('retry-download', (event, id) => {
   downloadsModule.retryDownload(mainWindow, id);
 });
 
+ipcMain.on('trigger-action', (event, action) => {
+  if (!mainWindow) return;
+  if (action === 'search') showSearchOverlay();
+  else if (action === 'downloads') showDownloadsManager();
+  else if (action === 'extensions') showExtensionsOverlay();
+  else if (action === 'settings') showSettingsOverlay();
+  else if (action === 'reload') mainWindow.webContents.reload();
+  else if (action === 'zoom-in') {
+    const level = mainWindow.webContents.getZoomLevel();
+    mainWindow.webContents.setZoomLevel(Math.min(level + 0.5, 5));
+  }
+  else if (action === 'zoom-out') {
+    const level = mainWindow.webContents.getZoomLevel();
+    mainWindow.webContents.setZoomLevel(Math.max(level - 0.5, -5));
+  }
+  else if (action === 'print') {
+    mainWindow.webContents.print();
+  }
+});
+
 ipcMain.on('cancel-popup', () => {
   if (downloadPopupWindow) downloadPopupWindow.hide();
 });

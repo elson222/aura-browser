@@ -23,25 +23,25 @@ body {
   align-items: center;
   width: 100%;
   height: 64px;
-  background: rgba(18, 14, 32, 0.85);
+  background: rgba(10, 10, 10, 0.96);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   padding: 0 20px;
   box-shadow: 
-    0 15px 35px rgba(0, 0, 0, 0.6), 
-    0 0 30px rgba(123, 44, 191, 0.25);
+    0 15px 35px rgba(0, 0, 0, 0.7), 
+    0 0 35px rgba(255, 255, 255, 0.05);
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
   box-sizing: border-box;
   z-index: 10;
 }
 
 .search-container:focus-within {
-  border-color: rgba(123, 44, 191, 0.6);
+  border-color: rgba(255, 255, 255, 0.25);
   box-shadow: 
-    0 15px 35px rgba(0, 0, 0, 0.6), 
-    0 0 30px rgba(123, 44, 191, 0.45);
+    0 15px 35px rgba(0, 0, 0, 0.7), 
+    0 0 45px rgba(255, 255, 255, 0.1);
 }
 
 .search-icon {
@@ -81,7 +81,7 @@ input[type="text"]::placeholder {
 
 .search-container:focus-within .enter-badge {
   opacity: 1;
-  border-color: rgba(123, 44, 191, 0.4);
+  border-color: rgba(255, 255, 255, 0.2);
   color: #f3f0fc;
 }
 
@@ -90,7 +90,7 @@ input[type="text"]::placeholder {
   display: none; /* Hidden when empty */
   flex-direction: column;
   margin-top: 10px;
-  background: rgba(18, 14, 32, 0.85);
+  background: rgba(10, 10, 10, 0.96);
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -117,8 +117,8 @@ input[type="text"]::placeholder {
 }
 
 .suggestion-item:hover, .suggestion-item.selected {
-  background: rgba(123, 44, 191, 0.25);
-  border: 1px solid rgba(123, 44, 191, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .suggestion-item.selected {
@@ -180,9 +180,9 @@ input[type="text"]::placeholder {
 }
 
 .badge-engine {
-  background: rgba(123, 44, 191, 0.15);
-  color: #d896ff;
-  border: 1px solid rgba(123, 44, 191, 0.3);
+  background: rgba(255, 255, 255, 0.06);
+  color: #dddddd;
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 /* Custom Scrollbar for suggestions */

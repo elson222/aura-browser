@@ -8,52 +8,27 @@
 
 // CSS for forcing light sites to deep black
 const FULL_DARK_CSS = `
-  /* === AURA DARK MODE — FULL FORCE === */
-  html, body {
+  /* === AURA DARK MODE — SMART INVERSION === */
+  
+  /* Invert the root document to flip light to dark */
+  html {
+    filter: invert(1) hue-rotate(180deg) !important;
     background-color: #000000 !important;
-    color: #e8e6e3 !important;
   }
 
-  *, *::before, *::after {
-    border-color: #1a1a1a !important;
-    text-decoration-color: #e8e6e3 !important;
-  }
-
-  /* Force backgrounds to black — excluding media elements */
-  div, span, p, section, main, header, footer, nav, article, aside,
-  ul, ol, li, table, thead, tbody, tr, td, th, form, fieldset,
-  details, summary, dialog, menu, menuitem,
-  h1, h2, h3, h4, h5, h6, blockquote, pre, code,
-  figure, figcaption, label, legend, input, textarea, select, button {
+  /* Ensure body matches pure black background */
+  body {
     background-color: #000000 !important;
-    color: #e8e6e3 !important;
   }
 
-  /* Links */
-  a, a:visited { color: #7b9ff0 !important; }
-  a:hover { color: #a4bff7 !important; }
-
-  /* Input fields — slightly lighter for distinction */
-  input, textarea, select {
-    background-color: #0a0a0a !important;
-    color: #e8e6e3 !important;
-    border: 1px solid #222 !important;
+  /* Double-invert media elements so they render in their normal colors */
+  img, video, canvas, svg, picture, iframe, [style*="background-image"] {
+    filter: invert(1) hue-rotate(180deg) !important;
   }
 
-  /* Buttons */
-  button, [role="button"], input[type="submit"], input[type="button"] {
-    background-color: #111 !important;
-    color: #e8e6e3 !important;
-    border: 1px solid #333 !important;
-  }
-  button:hover, [role="button"]:hover {
-    background-color: #1a1a1a !important;
-  }
-
-  /* Code blocks */
-  pre, code, .highlight, .code-block {
-    background-color: #0a0a0a !important;
-    color: #c9d1d9 !important;
+  /* Avoid inverting input fields twice if they contain graphics */
+  input, textarea, select, button {
+    text-shadow: none !important;
   }
 
   /* Scrollbar */
@@ -61,27 +36,6 @@ const FULL_DARK_CSS = `
   ::-webkit-scrollbar-track { background: #000 !important; }
   ::-webkit-scrollbar-thumb { background: #222 !important; border-radius: 4px; }
   ::-webkit-scrollbar-thumb:hover { background: #333 !important; }
-
-  /* ===== PRESERVE MEDIA — CRITICAL ===== */
-  img, video, canvas, svg, picture,
-  img *, video *, canvas *, svg *, picture *,
-  [style*="background-image"],
-  iframe[src*="youtube"], iframe[src*="vimeo"], iframe[src*="dailymotion"],
-  .video-player, .html5-video-container {
-    color: initial !important;
-    background-color: transparent !important;
-  }
-
-  img, video, canvas, picture {
-    filter: none !important;
-    mix-blend-mode: normal !important;
-    opacity: 1 !important;
-  }
-
-  /* SVG icons should adapt */
-  svg:not([class*="logo"]):not([class*="brand"]) {
-    fill: currentColor !important;
-  }
 `;
 
 // CSS for sites that already have dark mode but use greys instead of pure black
