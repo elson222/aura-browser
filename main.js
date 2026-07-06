@@ -13,6 +13,9 @@ let darkModeCssKey = null;
 let darkModeEnabled = true; // Default on
 let glassmorphismCssKey = null;
 let glassmorphismEnabled = false; // Default off
+let adBlockerEnabled = true; // Default on
+let saveHistoryEnabled = true; // Default on
+let settingsWindow;
 
 // Ad Blocker domains list
 const adDomains = [
@@ -71,6 +74,8 @@ function loadUserData() {
       userData = { ...userData, ...loaded };
       darkModeEnabled = userData.darkModeEnabled !== false;
       glassmorphismEnabled = userData.glassmorphismEnabled === true;
+      adBlockerEnabled = userData.adBlockerEnabled !== false;
+      saveHistoryEnabled = userData.saveHistoryEnabled !== false;
     } else {
       saveUserData();
     }
@@ -83,6 +88,8 @@ function saveUserData() {
   try {
     userData.darkModeEnabled = darkModeEnabled;
     userData.glassmorphismEnabled = glassmorphismEnabled;
+    userData.adBlockerEnabled = adBlockerEnabled;
+    userData.saveHistoryEnabled = saveHistoryEnabled;
     fs.writeFileSync(userDataPath, JSON.stringify(userData, null, 2), 'utf8');
   } catch (err) {
     console.error("Failed to save user data:", err);
@@ -121,11 +128,12 @@ function createMainWindow() {
     if (searchWindow) searchWindow.close();
     if (extensionsWindow) extensionsWindow.close();
     if (downloadPopupWindow) downloadPopupWindow.close();
+    if (settingsWindow) settingsWindow.close();
   });
 
   // Track History on Navigation
   mainWindow.webContents.on('did-navigate', (event, url) => {
-    if (url.startsWith('file://')) return;
+    if (url.startsWith('file://') || !saveHistoryEnabled) return;
     
     setTimeout(() => {
       if (!mainWindow) return;
@@ -195,6 +203,13 @@ function createMainWindow() {
     if (ctrl && !shift && key === 'd') {
       event.preventDefault();
       bookmarkCurrentPage();
+      return;
+    }
+
+    // Ctrl+, — Settings overlay
+    if (ctrl && !shift && input.key === ',') {
+      event.preventDefault();
+      showSettingsOverlay();
       return;
     }
 
@@ -504,6 +519,68 @@ function hideExtensionsOverlay() {
 }
 
 // ============================================================
+// SETTINGS OVERLAY
+// ============================================================
+
+function createSettingsWindow() {
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { width, height } = primaryDisplay.workAreaSize;
+  const overlayWidth = 450;
+  const overlayHeight = 480;
+
+  settingsWindow = new BrowserWindow({
+    width: overlayWidth,
+    height: overlayHeight,
+    x: Math.floor((width - overlayWidth) / 2),
+    y: Math.floor((height - overlayHeight) / 2),
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    show: false,
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    fullscreenable: false,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js')
+    }
+  });
+
+  settingsWindow.loadFile(path.join(__dirname, 'settings.html'));
+
+  settingsWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.key === 'Escape' && input.type === 'keyDown') {
+      event.preventDefault();
+      hideSettingsOverlay();
+    }
+  });
+
+  settingsWindow.on('blur', () => {
+    hideSettingsOverlay();
+  });
+}
+
+function showSettingsOverlay() {
+  if (!settingsWindow) return;
+  settingsWindow.webContents.send('settings-loaded', {
+    adBlockerEnabled,
+    darkModeEnabled,
+    glassmorphismEnabled,
+    saveHistoryEnabled
+  });
+  settingsWindow.show();
+  settingsWindow.focus();
+}
+
+function hideSettingsOverlay() {
+  if (!settingsWindow) return;
+  settingsWindow.hide();
+  if (mainWindow) mainWindow.focus();
+}
+
+// ============================================================
 // EXTENSIONS ENGINE
 // ============================================================
 
@@ -788,6 +865,44 @@ ipcMain.handle('get-glassmorphism-status', () => {
   return glassmorphismEnabled;
 });
 
+// Settings Management
+ipcMain.handle('get-settings', () => {
+  return {
+    adBlockerEnabled,
+    darkModeEnabled,
+    glassmorphismEnabled,
+    saveHistoryEnabled
+  };
+});
+
+ipcMain.handle('save-setting', async (event, data) => {
+  const { key, value } = data || {};
+  if (key === 'adBlockerEnabled') {
+    adBlockerEnabled = value;
+  } else if (key === 'darkModeEnabled') {
+    if (darkModeEnabled !== value) {
+      await toggleDarkMode();
+    }
+  } else if (key === 'glassmorphismEnabled') {
+    if (glassmorphismEnabled !== value) {
+      await toggleGlassmorphism();
+    }
+  } else if (key === 'saveHistoryEnabled') {
+    saveHistoryEnabled = value;
+  }
+  saveUserData();
+  return true;
+});
+
+ipcMain.handle('clear-browsing-data', async () => {
+  await clearBrowsingData();
+  return true;
+});
+
+ipcMain.on('cancel-settings', () => {
+  hideSettingsOverlay();
+});
+
 // Downloads
 ipcMain.handle('get-downloads', () => {
   return downloadsModule.getPublicDownloads();
@@ -797,6 +912,16 @@ ipcMain.handle('get-detected-media', () => {
   if (!mainWindow) return [];
   const url = mainWindow.webContents.getURL();
   return downloadsModule.getDetectedMedia(url);
+});
+
+ipcMain.handle('scan-media', async () => {
+  if (!mainWindow) return [];
+  const mediaItems = await downloadsModule.scanPageForMedia(mainWindow.webContents);
+  if (downloadPopupWindow && mediaItems.length > 0) {
+    downloadPopupWindow.webContents.send('media-detected', mediaItems);
+    downloadPopupWindow.show();
+  }
+  return mediaItems;
 });
 
 ipcMain.on('start-download', (event, url) => {
@@ -844,6 +969,10 @@ app.whenReady().then(() => {
 
   // Setup Ad Blocker WebRequest interceptor
   session.defaultSession.webRequest.onBeforeRequest((details, callback) => {
+    if (!adBlockerEnabled) {
+      callback({ cancel: false });
+      return;
+    }
     const url = details.url;
     const isAd = adDomains.some(domain => url.includes(domain));
     if (isAd) {
@@ -853,13 +982,6 @@ app.whenReady().then(() => {
     }
   });
 
-  // Setup media detection
-  downloadsModule.setupMediaDetection(session.defaultSession, (pageUrl, mediaItems) => {
-    if (downloadPopupWindow && mediaItems.length > 0) {
-      downloadPopupWindow.webContents.send('media-detected', mediaItems);
-      downloadPopupWindow.show();
-    }
-  });
 
   // Setup download tracking
   downloadsModule.setupDownloadTracking(session.defaultSession, (downloads) => {
@@ -877,6 +999,7 @@ app.whenReady().then(() => {
   createSearchWindow();
   createExtensionsWindow();
   createDownloadPopupWindow();
+  createSettingsWindow();
 
   app.on('activate', () => {
     if (BrowserWindow.getAll().length === 0) {
@@ -884,6 +1007,7 @@ app.whenReady().then(() => {
       createSearchWindow();
       createExtensionsWindow();
       createDownloadPopupWindow();
+      createSettingsWindow();
     }
   });
 });

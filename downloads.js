@@ -68,7 +68,14 @@ function detectMediaType(contentType, url) {
  */
 function extractFilename(url, headers) {
   // Try Content-Disposition header
-  const disposition = headers?.['content-disposition'] || '';
+  let disposition = '';
+  const rawDisp = headers?.['content-disposition'] || headers?.['Content-Disposition'];
+  if (Array.isArray(rawDisp)) {
+    disposition = rawDisp[0] || '';
+  } else if (typeof rawDisp === 'string') {
+    disposition = rawDisp;
+  }
+
   const filenameMatch = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/i);
   if (filenameMatch) {
     return filenameMatch[1].replace(/['"]/g, '').trim();
@@ -165,58 +172,82 @@ async function detectYouTubeMedia(webContents) {
 }
 
 /**
- * Setup media detection on a session
- * @param {Electron.Session} session
- * @param {Function} onMediaFound - callback(pageUrl, mediaItems[])
+ * Scan a webContents page DOM for playable videos/audio, or resolve YouTube streams
+ * @param {Electron.WebContents} webContents
+ * @returns {Promise<Array>} List of detected media items
  */
-function setupMediaDetection(session, onMediaFound) {
-  // Track media detected per page URL
-  session.webRequest.onHeadersReceived((details, callback) => {
-    callback({ cancel: false });
+async function scanPageForMedia(webContents) {
+  const url = webContents.getURL();
+  if (!url || url.startsWith('file://') || url.startsWith('chrome://') || url.startsWith('devtools://')) {
+    return [];
+  }
 
-    // Skip non-media requests
-    if (details.resourceType === 'mainFrame' || details.resourceType === 'subFrame') return;
+  // Clear previous media entries for this URL
+  detectedMedia[url] = [];
 
-    const contentType = details.responseHeaders?.['content-type']?.[0] ||
-                        details.responseHeaders?.['Content-Type']?.[0] || '';
-    const contentLength = parseInt(details.responseHeaders?.['content-length']?.[0] ||
-                                   details.responseHeaders?.['Content-Length']?.[0] || '0');
+  // 1. YouTube specific scan
+  if (isYouTubeVideo(url)) {
+    const ytMedia = await detectYouTubeMedia(webContents);
+    detectedMedia[url] = ytMedia;
+    return ytMedia;
+  }
 
-    const mediaType = detectMediaType(contentType, details.url);
-    if (!mediaType) return;
+  // 2. Generic HTML5 Media element scan via JS injection
+  try {
+    const scraped = await webContents.executeJavaScript(`
+      (function() {
+        const list = [];
+        
+        // Scan video tags
+        document.querySelectorAll('video').forEach((v, index) => {
+          let src = v.src || v.querySelector('source')?.src;
+          if (src && src.startsWith('http')) {
+            let name = 'Video_' + (index + 1);
+            try {
+              name = src.split('/').pop().split('?')[0] || name;
+            } catch(e) {}
+            list.push({
+              id: 'scraped-vid-' + index,
+              filename: name.includes('.') ? name : name + '.mp4',
+              url: src,
+              type: 'video',
+              size: null,
+              quality: 'Original',
+              icon: '🎬'
+            });
+          }
+        });
 
-    // Check minimum size
-    if (contentLength > 0 && contentLength < SIZE_THRESHOLDS[mediaType]) return;
+        // Scan audio tags
+        document.querySelectorAll('audio').forEach((a, index) => {
+          let src = a.src || a.querySelector('source')?.src;
+          if (src && src.startsWith('http')) {
+            let name = 'Audio_' + (index + 1);
+            try {
+              name = src.split('/').pop().split('?')[0] || name;
+            } catch(e) {}
+            list.push({
+              id: 'scraped-aud-' + index,
+              filename: name.includes('.') ? name : name + '.mp3',
+              url: src,
+              type: 'audio',
+              size: null,
+              quality: 'Original',
+              icon: '🎵'
+            });
+          }
+        });
 
-    // Skip known tracking/analytics URLs
-    if (/googlesyndication|doubleclick|analytics|tracking|pixel|beacon/i.test(details.url)) return;
+        return list;
+      })()
+    `);
 
-    const filename = extractFilename(details.url, details.responseHeaders);
-    const pageUrl = details.webContents?.getURL() || 'unknown';
-
-    const mediaItem = {
-      id: `media-${++downloadIdCounter}`,
-      filename: filename,
-      url: details.url,
-      type: mediaType,
-      size: contentLength > 0 ? contentLength : null,
-      sizeFormatted: formatSize(contentLength),
-      quality: null,
-      qualities: null,
-      icon: mediaType === 'video' ? '🎬' : mediaType === 'audio' ? '🎵' : '🖼️'
-    };
-
-    if (!detectedMedia[pageUrl]) {
-      detectedMedia[pageUrl] = [];
-    }
-
-    // Avoid duplicates
-    const isDuplicate = detectedMedia[pageUrl].some(m => m.url === mediaItem.url);
-    if (!isDuplicate) {
-      detectedMedia[pageUrl].push(mediaItem);
-      onMediaFound(pageUrl, detectedMedia[pageUrl]);
-    }
-  });
+    detectedMedia[url] = scraped || [];
+    return detectedMedia[url];
+  } catch (err) {
+    console.error('General media scraping failed:', err.message);
+    return [];
+  }
 }
 
 /**
@@ -401,7 +432,7 @@ function getPublicDownloads() {
 }
 
 module.exports = {
-  setupMediaDetection,
+  scanPageForMedia,
   setupDownloadTracking,
   getDetectedMedia,
   clearDetectedMedia,

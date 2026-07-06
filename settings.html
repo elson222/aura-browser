@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <div class="settings-wrapper" id="settingsContainer">
+    <div class="settings-header">
+      <div class="header-info">
+        <h2>Settings</h2>
+        <span class="subtitle">Customize your Aura experience</span>
+      </div>
+      <button class="close-btn" id="closeBtn" title="Close Settings">×</button>
+    </div>
+
+    <div class="settings-list">
+      <!-- Setting Option: Ad Blocker -->
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-title">🛡️ Ad Blocker</span>
+          <span class="setting-desc">Block advertising domains and tracking scripts</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="adblock-toggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <!-- Setting Option: Dark Mode -->
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-title">🕶️ Aura Dark Mode</span>
+          <span class="setting-desc">Force deep black OLED dark themes on light websites</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="darkmode-toggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <!-- Setting Option: Glassmorphism -->
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-title">🔮 Glassmorphism Mode</span>
+          <span class="setting-desc">Apply semi-transparent layout and blur to web views</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="glassmorphism-toggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <!-- Setting Option: Save History -->
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-title">🕒 Save Browsing History</span>
+          <span class="setting-desc">Keep record of visited pages for search suggestions</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="history-toggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="settings-actions">
+      <button class="action-btn danger" id="clearDataBtn">
+        Clear Browsing Data
+      </button>
+      <div class="action-status" id="actionStatus"></div>
+    </div>
+  </div>
+
+  <script src="settings.js"></script>
+</body>
+</html>

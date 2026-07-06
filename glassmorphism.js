@@ -7,55 +7,51 @@
 const GLASS_CSS = `
   /* === AURA GLASSMORPHISM MODE === */
   
-  /* Make page root transparent */
+  /* Make page root transparent with a single hardware-accelerated backdrop blur */
   html, body {
-    background: transparent !important;
-    background-color: transparent !important;
+    background: rgba(10, 8, 22, 0.35) !important;
+    background-color: rgba(10, 8, 22, 0.35) !important;
+    backdrop-filter: blur(25px) saturate(1.8) !important;
+    -webkit-backdrop-filter: blur(25px) saturate(1.8) !important;
   }
 
-  /* Target main container divs, panels, and cards and make them semi-transparent glass */
+  /* Strip layout backgrounds to let Acrylic show through */
   div, section, article, main, header, footer, nav, aside,
   .container, .wrapper, .main, .content, .sidebar, .panel, .card,
   ul, ol, table, form, fieldset, details, dialog {
-    /* If the element has a background color, make it semi-transparent */
-    background-color: rgba(18, 14, 32, 0.45) !important;
-    backdrop-filter: blur(20px) saturate(1.6) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(1.6) !important;
-    border-color: rgba(255, 255, 255, 0.08) !important;
+    background-color: transparent !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    /* NO backdrop-filter here to avoid layout lagging */
   }
 
-  /* Make sure background gradients are removed/softened */
+  /* Remove heavy background gradients */
   * {
     background-image: none !important;
   }
 
-  /* Opaque cards and boxes should also be semi-transparent */
+  /* Subtle card contrast */
   [class*="card"], [class*="box"], [class*="item"], [class*="wrapper"], [class*="container"] {
-    background-color: rgba(255, 255, 255, 0.03) !important;
-    backdrop-filter: blur(15px) !important;
-    -webkit-backdrop-filter: blur(15px) !important;
+    background-color: rgba(255, 255, 255, 0.02) !important;
     border: 1px solid rgba(255, 255, 255, 0.05) !important;
   }
 
-  /* Opaque headers, navigation bars, and menus */
+  /* Headers and navigation bars get a subtle tint */
   header, nav, [role="navigation"], [class*="nav"], [class*="menu"], [class*="header"] {
-    background-color: rgba(10, 8, 20, 0.6) !important;
-    backdrop-filter: blur(25px) !important;
-    -webkit-backdrop-filter: blur(25px) !important;
+    background-color: rgba(10, 8, 22, 0.45) !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
   }
 
-  /* Specific dark theme selectors to override opaque black/grey colors */
+  /* Override custom background styles */
   [style*="background-color: rgb("], [style*="background-color: #"] {
-    background-color: rgba(18, 14, 32, 0.45) !important;
+    background-color: transparent !important;
   }
 
   /* Text readability improvements */
-  p, span, h1, h2, h3, h4, h5, h6, li, td, th, label {
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+  p, span, h1, h2, h3, h4, h5, h6, li, td, th, label, a {
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8) !important;
   }
 
-  /* Preserve media elements fully */
+  /* Media elements remain untouched */
   img, video, canvas, svg, iframe, picture {
     background-color: transparent !important;
     backdrop-filter: none !important;

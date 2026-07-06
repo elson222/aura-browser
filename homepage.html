@@ -368,22 +368,9 @@
         <span class="shortcut-desc">Fullscreen</span>
         <div class="key-caps"><kbd>F11</kbd></div>
       </div>
-    </div>
-
-    <div class="settings-bar">
-      <div class="setting-item">
-        <span>Dark Mode</span>
-        <label class="switch">
-          <input type="checkbox" id="dark-mode-toggle">
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="setting-item">
-        <span>Glassmorphism</span>
-        <label class="switch">
-          <input type="checkbox" id="glass-toggle">
-          <span class="slider"></span>
-        </label>
+      <div class="shortcut-card">
+        <span class="shortcut-desc">Browser Settings</span>
+        <div class="key-caps"><kbd>Ctrl</kbd><kbd>,</kbd></div>
       </div>
     </div>
 
@@ -392,32 +379,5 @@
       <span>Press Ctrl + T to begin your session</span>
     </div>
   </div>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-      const dmToggle = document.getElementById('dark-mode-toggle');
-      const glassToggle = document.getElementById('glass-toggle');
-
-      if (window.electronAPI) {
-        // Load initial states
-        const dmStatus = await window.electronAPI.getDarkModeStatus();
-        const glassStatus = await window.electronAPI.getGlassmorphismStatus();
-
-        dmToggle.checked = dmStatus;
-        glassToggle.checked = glassStatus;
-
-        // Listen for user changes
-        dmToggle.addEventListener('change', async () => {
-          const enabled = await window.electronAPI.toggleDarkMode();
-          dmToggle.checked = enabled;
-        });
-
-        glassToggle.addEventListener('change', async () => {
-          const enabled = await window.electronAPI.toggleGlassmorphism();
-          glassToggle.checked = enabled;
-        });
-      }
-    });
-  </script>
 </body>
 </html>
