@@ -6,6 +6,8 @@ let darkModeEnabled = true; // Default on
 let adBlockerEnabled = true; // Default on
 let saveHistoryEnabled = true; // Default on
 let vpnEnabled = false; // Default off
+let darkThemeStyle = 'grey'; // 'grey' or 'black'
+let deepBlackCssKey = null;
 
 // Load settings early to apply Chromium command-line switches
 try {
@@ -16,6 +18,7 @@ try {
     adBlockerEnabled = loaded.adBlockerEnabled !== false;
     saveHistoryEnabled = loaded.saveHistoryEnabled !== false;
     vpnEnabled = loaded.vpnEnabled === true;
+    darkThemeStyle = loaded.darkThemeStyle || 'grey';
   }
 } catch (e) {
   // ignore
@@ -25,11 +28,6 @@ try {
 if (darkModeEnabled) {
   app.commandLine.appendSwitch('enable-features', 'WebContentsForceDark');
 }
-
-// Force hardware acceleration
-app.commandLine.appendSwitch('enable-gpu-rasterization');
-app.commandLine.appendSwitch('enable-oop-rasterization');
-app.commandLine.appendSwitch('disable-software-rasterizer');
 
 const darkMode = require('./dark-mode');
 const downloadsModule = require('./downloads');
@@ -100,6 +98,7 @@ function loadUserData() {
       adBlockerEnabled = userData.adBlockerEnabled !== false;
       saveHistoryEnabled = userData.saveHistoryEnabled !== false;
       vpnEnabled = userData.vpnEnabled === true;
+      darkThemeStyle = userData.darkThemeStyle || 'grey';
     } else {
       saveUserData();
     }
@@ -114,6 +113,7 @@ function saveUserData() {
     userData.adBlockerEnabled = adBlockerEnabled;
     userData.saveHistoryEnabled = saveHistoryEnabled;
     userData.vpnEnabled = vpnEnabled;
+    userData.darkThemeStyle = darkThemeStyle;
     fs.writeFileSync(userDataPath, JSON.stringify(userData, null, 2), 'utf8');
   } catch (err) {
     console.error("Failed to save user data:", err);
@@ -139,6 +139,10 @@ function createMainWindow() {
 
   mainWindow.setMenu(null);
   mainWindow.loadFile(path.join(__dirname, 'homepage.html'));
+
+  mainWindow.webContents.on('did-finish-load', () => {
+    applyDarkThemeStyle();
+  });
 
   mainWindow.on('closed', () => {
     mainWindow = null;
@@ -745,6 +749,34 @@ async function toggleDarkMode() {
   app.exit(0);
 }
 
+async function applyDarkThemeStyle() {
+  if (!mainWindow) return;
+  
+  if (deepBlackCssKey) {
+    try {
+      await mainWindow.webContents.removeInsertedCSS(deepBlackCssKey);
+    } catch (e) {}
+    deepBlackCssKey = null;
+  }
+  
+  if (darkModeEnabled && darkThemeStyle === 'black') {
+    try {
+      deepBlackCssKey = await mainWindow.webContents.insertCSS(`
+        html, body {
+          background-color: #000000 !important;
+          background: #000000 !important;
+        }
+        div:not([role="button"]):not([class*="btn"]):not([class*="button"]):not([class*="badge"]), 
+        section, main, article, aside, header, footer, nav, ul, ol, li, table, form, fieldset, details {
+          background-color: #000000 !important;
+        }
+      `);
+    } catch (err) {
+      console.error("Deep black CSS injection failed:", err);
+    }
+  }
+}
+
 // ============================================================
 // SEARCH QUERY PARSING
 // ============================================================
@@ -853,7 +885,8 @@ ipcMain.handle('get-settings', () => {
     adBlockerEnabled,
     darkModeEnabled,
     saveHistoryEnabled,
-    vpnEnabled
+    vpnEnabled,
+    darkThemeStyle
   };
 });
 
@@ -879,6 +912,9 @@ ipcMain.handle('save-setting', async (event, data) => {
         mainWindow.webContents.send('settings-changed', { vpnEnabled });
       }
     }
+  } else if (key === 'darkThemeStyle') {
+    darkThemeStyle = value;
+    await applyDarkThemeStyle();
   }
   saveUserData();
   return true;

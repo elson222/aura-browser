@@ -134,6 +134,13 @@ function injectSidePanel() {
           <span class="aura-slider"></span>
         </label>
       </div>
+      <div class="sidebar-row" id="aura-sidebar-darkstyle-row">
+        <span>🎨 Dark Style</span>
+        <select class="sidebar-select" id="aura-sidebar-darkstyle">
+          <option value="grey">Aura Grey</option>
+          <option value="black">Deep Black</option>
+        </select>
+      </div>
 
       <div class="sidebar-row">
         <span>🕒 Save History</span>
@@ -258,6 +265,27 @@ function injectSidePanel() {
       color: #dddddd !important;
     }
 
+    .sidebar-select {
+      background: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      border-radius: 6px !important;
+      color: #ffffff !important;
+      padding: 4px 8px !important;
+      font-family: inherit !important;
+      font-size: 11px !important;
+      outline: none !important;
+      cursor: pointer !important;
+      transition: background-color 0.15s ease, border-color 0.15s ease !important;
+    }
+    .sidebar-select:hover {
+      background: rgba(255, 255, 255, 0.1) !important;
+      border-color: rgba(255, 255, 255, 0.2) !important;
+    }
+    .sidebar-select option {
+      background: #0b0b0b !important;
+      color: #ffffff !important;
+    }
+
     /* Switches */
     .aura-switch {
       position: relative !important;
@@ -379,6 +407,31 @@ function injectSidePanel() {
         document.getElementById('aura-sidebar-darkmode').checked = settings.darkModeEnabled;
         document.getElementById('aura-sidebar-history').checked = settings.saveHistoryEnabled;
         document.getElementById('aura-sidebar-vpn').checked = settings.vpnEnabled;
+        
+        const styleSelect = document.getElementById('aura-sidebar-darkstyle');
+        const styleRow = document.getElementById('aura-sidebar-darkstyle-row');
+        if (settings.darkThemeStyle) {
+          styleSelect.value = settings.darkThemeStyle;
+        }
+        
+        const updateStyleRow = () => {
+          if (document.getElementById('aura-sidebar-darkmode').checked) {
+            styleRow.style.display = 'flex';
+          } else {
+            styleRow.style.display = 'none';
+          }
+        };
+        updateStyleRow();
+        
+        document.getElementById('aura-sidebar-darkmode').addEventListener('change', updateStyleRow);
+        
+        styleSelect.addEventListener('change', async (e) => {
+          try {
+            await ipcRenderer.invoke('save-setting', { key: 'darkThemeStyle', value: e.target.value });
+          } catch (err) {
+            console.error('Failed to change style:', err);
+          }
+        });
       }
     } catch (e) {
       console.error('Failed to sync sidebar states:', e);

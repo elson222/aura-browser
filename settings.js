@@ -19,6 +19,17 @@
     vpnEnabled: document.getElementById('vpn-toggle')
   };
 
+  const darkStyleSelect = document.getElementById('dark-style-select');
+  const darkStyleRow = document.getElementById('dark-style-row');
+
+  function updateStyleRowVisibility() {
+    if (toggles.darkModeEnabled.checked) {
+      darkStyleRow.style.display = 'flex';
+    } else {
+      darkStyleRow.style.display = 'none';
+    }
+  }
+
   // ── Preload API: Get Settings on load ──
   if (window.electronAPI) {
     window.electronAPI.getSettings().then(settings => {
@@ -28,6 +39,10 @@
             toggles[key].checked = settings[key];
           }
         });
+        if (settings.darkThemeStyle) {
+          darkStyleSelect.value = settings.darkThemeStyle;
+        }
+        updateStyleRowVisibility();
       }
     }).catch(err => {
       console.error('Failed to load settings:', err);
@@ -51,6 +66,19 @@
       });
     }
   });
+
+  // Bind change event for dark mode style select
+  darkStyleSelect.addEventListener('change', async () => {
+    if (window.electronAPI) {
+      try {
+        await window.electronAPI.saveSetting({ key: 'darkThemeStyle', value: darkStyleSelect.value });
+      } catch (err) {
+        console.error('Failed to save darkThemeStyle:', err);
+      }
+    }
+  });
+
+  toggles.darkModeEnabled.addEventListener('change', updateStyleRowVisibility);
 
   // ── Action: Clear Browsing Data ──
   clearDataBtn.addEventListener('click', async () => {

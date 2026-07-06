@@ -36,7 +36,7 @@
       <div class="setting-row">
         <div class="setting-info">
           <span class="setting-title">🕶️ Aura Dark Mode</span>
-          <span class="setting-desc">Force deep black OLED dark themes on light websites</span>
+          <span class="setting-desc">Force websites to use dark theme automatically</span>
         </div>
         <label class="switch">
           <input type="checkbox" id="darkmode-toggle">
@@ -44,7 +44,17 @@
         </label>
       </div>
 
-
+      <!-- Setting Option: Dark Style -->
+      <div class="setting-row" id="dark-style-row">
+        <div class="setting-info">
+          <span class="setting-title">🎨 Dark Mode Style</span>
+          <span class="setting-desc">Choose between YouTube-style grey or pure OLED black</span>
+        </div>
+        <select class="settings-select" id="dark-style-select">
+          <option value="grey">Aura Grey (Recommended)</option>
+          <option value="black">Deep Black</option>
+        </select>
+      </div>
       <!-- Setting Option: Free VPN -->
       <div class="setting-row">
         <div class="setting-info">
