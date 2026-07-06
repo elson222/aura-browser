@@ -156,12 +156,29 @@ const DETECT_DARK_MODE_SCRIPT = `
       if (theme && /dark|night|black/i.test(theme)) return 'dark';
 
       // Measure actual background luminance
-      const bgColor = getComputedStyle(body).backgroundColor;
-      const match = bgColor.match(/\\d+/g);
+      let bgColor = getComputedStyle(body).backgroundColor;
+      let match = bgColor.match(/\\d+/g);
+
+      // If transparent, try html
+      if (!match || (match.length === 4 && parseFloat(match[3]) === 0)) {
+        bgColor = getComputedStyle(html).backgroundColor;
+        match = bgColor.match(/\\d+/g);
+      }
+
+      // If still transparent or not matching, default to light browser background
+      if (!match || (match.length === 4 && parseFloat(match[3]) === 0)) {
+        return 'light';
+      }
+
       if (match && match.length >= 3) {
         const r = parseInt(match[0]);
         const g = parseInt(match[1]);
         const b = parseInt(match[2]);
+        const a = match.length === 4 ? parseFloat(match[3]) : 1;
+
+        // If high transparency, it will show the default browser light background
+        if (a < 0.1) return 'light';
+
         const luminance = (0.299 * r + 0.587 * g + 0.114 * b);
 
         if (luminance < 40) return 'dark';  // Already very dark

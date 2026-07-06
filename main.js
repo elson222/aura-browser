@@ -142,7 +142,7 @@ function createMainWindow() {
   });
 
   // Inject dark mode and glassmorphism on page load
-  mainWindow.webContents.on('did-finish-load', async () => {
+  mainWindow.webContents.on('dom-ready', async () => {
     darkModeCssKey = await darkMode.injectDarkMode(mainWindow.webContents, darkModeEnabled);
     glassmorphismCssKey = await glassmorphism.injectGlassmorphism(mainWindow.webContents, glassmorphismEnabled);
 
