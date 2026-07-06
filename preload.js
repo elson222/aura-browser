@@ -45,6 +45,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   scanMedia: () => ipcRenderer.invoke('scan-media'),
   triggerAction: (action) => ipcRenderer.send('trigger-action', action),
   onSettingsChanged: (callback) => ipcRenderer.on('settings-changed', (_event, data) => callback(data)),
+  toggleVpn: () => ipcRenderer.invoke('toggle-vpn'),
+  getVpnStatus: () => ipcRenderer.invoke('get-vpn-status'),
 });
 
 function injectDownloaderButton() {
@@ -149,6 +151,13 @@ function injectSidePanel() {
           <span class="aura-slider"></span>
         </label>
       </div>
+      <div class="sidebar-row">
+        <span>🌐 Free VPN</span>
+        <label class="aura-switch">
+          <input type="checkbox" id="aura-sidebar-vpn">
+          <span class="aura-slider"></span>
+        </label>
+      </div>
     </div>
 
     <div class="sidebar-section">
@@ -161,6 +170,7 @@ function injectSidePanel() {
       <button class="sidebar-btn" id="aura-btn-zoom-in">➕ Zoom In <kbd>Ctrl++</kbd></button>
       <button class="sidebar-btn" id="aura-btn-zoom-out">➖ Zoom Out <kbd>Ctrl+-</kbd></button>
       <button class="sidebar-btn" id="aura-btn-print">🖨️ Print Webpage <kbd>Ctrl+P</kbd></button>
+      <button class="sidebar-btn" id="aura-btn-drivers">🔧 Optimize PC Drivers <kbd>Admin</kbd></button>
     </div>
   `;
 
@@ -378,6 +388,7 @@ function injectSidePanel() {
         document.getElementById('aura-sidebar-darkmode').checked = settings.darkModeEnabled;
         document.getElementById('aura-sidebar-glass').checked = settings.glassmorphismEnabled;
         document.getElementById('aura-sidebar-history').checked = settings.saveHistoryEnabled;
+        document.getElementById('aura-sidebar-vpn').checked = settings.vpnEnabled;
       }
     } catch (e) {
       console.error('Failed to sync sidebar states:', e);
@@ -400,6 +411,7 @@ function injectSidePanel() {
   bindToggle('aura-sidebar-darkmode', 'darkModeEnabled');
   bindToggle('aura-sidebar-glass', 'glassmorphismEnabled');
   bindToggle('aura-sidebar-history', 'saveHistoryEnabled');
+  bindToggle('aura-sidebar-vpn', 'vpnEnabled');
 
   // Bind Action Buttons
   const bindAction = (id, action) => {
@@ -416,6 +428,7 @@ function injectSidePanel() {
   bindAction('aura-btn-zoom-in', 'zoom-in');
   bindAction('aura-btn-zoom-out', 'zoom-out');
   bindAction('aura-btn-print', 'print');
+  bindAction('aura-btn-drivers', 'optimize-drivers');
 }
 
 // Call on ready

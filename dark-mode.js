@@ -8,27 +8,57 @@
 
 // CSS for forcing light sites to deep black
 const FULL_DARK_CSS = `
-  /* === AURA DARK MODE — SMART INVERSION === */
+  /* === AURA SMART DARK MODE === */
+  :root {
+    color-scheme: dark !important;
+  }
   
-  /* Invert the root document to flip light to dark */
-  html {
-    filter: invert(1) hue-rotate(180deg) !important;
+  html, body {
     background-color: #000000 !important;
+    background: #000000 !important;
+    color: #e8e6e3 !important;
   }
 
-  /* Ensure body matches pure black background */
-  body {
+  /* Layout container overrides — avoid overriding button and badge backgrounds */
+  div:not([role="button"]):not([class*="btn"]):not([class*="button"]):not([class*="badge"]):not([class*="active"]):not([class*="select"]):not([class*="icon"]):not([class*="logo"]), 
+  section, main, article, aside, header, footer, nav, ul, ol, li, table, form, fieldset, details {
     background-color: #000000 !important;
+    color: #e8e6e3 !important;
+    border-color: #1a1a1a !important;
   }
 
-  /* Double-invert media elements so they render in their normal colors */
-  img, video, canvas, svg, picture, iframe, [style*="background-image"] {
-    filter: invert(1) hue-rotate(180deg) !important;
+  /* Text elements safety */
+  p, span, h1, h2, h3, h4, h5, h6, label, td, th, li {
+    color: #e8e6e3 !important;
   }
 
-  /* Avoid inverting input fields twice if they contain graphics */
-  input, textarea, select, button {
-    text-shadow: none !important;
+  /* Links readability */
+  a, a * {
+    color: #58a6ff !important;
+  }
+
+  /* Keep custom buttons and badges readable */
+  button, input[type="submit"], input[type="button"], [role="button"], [class*="btn"], [class*="button"] {
+    background-color: #161616 !important;
+    color: #ffffff !important;
+    border: 1px solid #333 !important;
+  }
+
+  /* Form inputs */
+  input[type="text"], input[type="search"], input[type="email"], input[type="password"], textarea, select {
+    background-color: #0a0a0a !important;
+    color: #ffffff !important;
+    border: 1px solid #333 !important;
+  }
+
+  /* Force dark SVGs to be light/white so they contrast nicely */
+  svg {
+    filter: brightness(0) invert(1) !important;
+  }
+  
+  /* Exclude colorful SVGs and images from filter */
+  img, video, canvas, picture, svg[class*="color"], svg[class*="brand"], [style*="background-image"] {
+    filter: none !important;
   }
 
   /* Scrollbar */

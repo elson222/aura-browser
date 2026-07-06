@@ -16,7 +16,8 @@
     adBlockerEnabled: document.getElementById('adblock-toggle'),
     darkModeEnabled: document.getElementById('darkmode-toggle'),
     glassmorphismEnabled: document.getElementById('glassmorphism-toggle'),
-    saveHistoryEnabled: document.getElementById('history-toggle')
+    saveHistoryEnabled: document.getElementById('history-toggle'),
+    vpnEnabled: document.getElementById('vpn-toggle')
   };
 
   // ── Preload API: Get Settings on load ──

@@ -1,9 +1,17 @@
 const { app, BrowserWindow, ipcMain, screen, session, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
+
+// Force hardware acceleration and transparent visuals
+app.commandLine.appendSwitch('enable-transparent-visuals');
+app.commandLine.appendSwitch('enable-gpu-rasterization');
+app.commandLine.appendSwitch('enable-oop-rasterization');
+app.commandLine.appendSwitch('disable-software-rasterizer');
+
 const darkMode = require('./dark-mode');
 const downloadsModule = require('./downloads');
 const glassmorphism = require('./glassmorphism');
+const vpnModule = require('./vpn');
 
 let mainWindow;
 let searchWindow;
@@ -15,6 +23,7 @@ let glassmorphismCssKey = null;
 let glassmorphismEnabled = false; // Default off
 let adBlockerEnabled = true; // Default on
 let saveHistoryEnabled = true; // Default on
+let vpnEnabled = false; // Default off
 let settingsWindow;
 
 // Ad Blocker domains list
@@ -76,6 +85,7 @@ function loadUserData() {
       glassmorphismEnabled = userData.glassmorphismEnabled === true;
       adBlockerEnabled = userData.adBlockerEnabled !== false;
       saveHistoryEnabled = userData.saveHistoryEnabled !== false;
+      vpnEnabled = userData.vpnEnabled === true;
     } else {
       saveUserData();
     }
@@ -90,6 +100,7 @@ function saveUserData() {
     userData.glassmorphismEnabled = glassmorphismEnabled;
     userData.adBlockerEnabled = adBlockerEnabled;
     userData.saveHistoryEnabled = saveHistoryEnabled;
+    userData.vpnEnabled = vpnEnabled;
     fs.writeFileSync(userDataPath, JSON.stringify(userData, null, 2), 'utf8');
   } catch (err) {
     console.error("Failed to save user data:", err);
@@ -879,7 +890,8 @@ ipcMain.handle('get-settings', () => {
     adBlockerEnabled,
     darkModeEnabled,
     glassmorphismEnabled,
-    saveHistoryEnabled
+    saveHistoryEnabled,
+    vpnEnabled
   };
 });
 
@@ -897,9 +909,39 @@ ipcMain.handle('save-setting', async (event, data) => {
     }
   } else if (key === 'saveHistoryEnabled') {
     saveHistoryEnabled = value;
+  } else if (key === 'vpnEnabled') {
+    if (vpnEnabled !== value) {
+      vpnEnabled = value;
+      if (vpnEnabled) {
+        await vpnModule.startVPN();
+      } else {
+        await vpnModule.stopVPN();
+      }
+      if (mainWindow) {
+        mainWindow.webContents.send('settings-changed', { vpnEnabled });
+      }
+    }
   }
   saveUserData();
   return true;
+});
+
+ipcMain.handle('toggle-vpn', async () => {
+  vpnEnabled = !vpnEnabled;
+  if (vpnEnabled) {
+    await vpnModule.startVPN();
+  } else {
+    await vpnModule.stopVPN();
+  }
+  saveUserData();
+  if (mainWindow) {
+    mainWindow.webContents.send('settings-changed', { vpnEnabled });
+  }
+  return vpnEnabled;
+});
+
+ipcMain.handle('get-vpn-status', () => {
+  return vpnEnabled;
 });
 
 ipcMain.handle('clear-browsing-data', async () => {
@@ -982,6 +1024,11 @@ ipcMain.on('trigger-action', (event, action) => {
   else if (action === 'print') {
     mainWindow.webContents.print();
   }
+  else if (action === 'optimize-drivers') {
+    const { exec } = require('child_process');
+    const scriptPath = path.join(app.getAppPath(), 'install_drivers.ps1');
+    exec(`powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process powershell -ArgumentList '-NoExit -ExecutionPolicy Bypass -File \\\"${scriptPath}\\\"' -Verb RunAs"`);
+  }
 });
 
 ipcMain.on('cancel-popup', () => {
@@ -994,6 +1041,14 @@ ipcMain.on('cancel-popup', () => {
 
 app.whenReady().then(() => {
   loadUserData();
+
+  // Ensure transparency is enabled in Windows Registry
+  if (process.platform === 'win32') {
+    const { exec } = require('child_process');
+    exec('powershell -Command "Set-ItemProperty -Path \'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize\' -Name \'EnableTransparency\' -Value 1"', (err) => {
+      if (err) console.error("Failed to enable Windows transparency registry key:", err);
+    });
+  }
 
   // Setup Ad Blocker WebRequest interceptor
   session.defaultSession.webRequest.onBeforeRequest((details, callback) => {
@@ -1021,6 +1076,10 @@ app.whenReady().then(() => {
 
   // Load saved extensions
   loadSavedExtensions();
+
+  if (vpnEnabled) {
+    vpnModule.startVPN().catch(err => console.error("VPN Startup failed:", err));
+  }
 
   // Create all windows
   createMainWindow();
