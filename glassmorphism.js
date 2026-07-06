@@ -5,14 +5,12 @@
  */
 
 const GLASS_CSS = `
-  /* === AURA GLASSMORPHISM MODE === */
+  /* === AURA GLASSMORPHISM MODE — NATIVE OPTIMIZED === */
   
-  /* Make page root transparent with a single hardware-accelerated backdrop blur */
+  /* Make page root transparent to let native OS Acrylic/Mica show through */
   html, body {
-    background: rgba(10, 8, 22, 0.35) !important;
-    background-color: rgba(10, 8, 22, 0.35) !important;
-    backdrop-filter: blur(25px) saturate(1.8) !important;
-    -webkit-backdrop-filter: blur(25px) saturate(1.8) !important;
+    background: rgba(10, 10, 10, 0.2) !important;
+    background-color: rgba(10, 10, 10, 0.2) !important;
   }
 
   /* Strip layout backgrounds to let Acrylic show through */
@@ -21,7 +19,6 @@ const GLASS_CSS = `
   ul, ol, table, form, fieldset, details, dialog {
     background-color: transparent !important;
     border-color: rgba(255, 255, 255, 0.05) !important;
-    /* NO backdrop-filter here to avoid layout lagging */
   }
 
   /* Remove heavy background gradients */
@@ -37,7 +34,7 @@ const GLASS_CSS = `
 
   /* Headers and navigation bars get a subtle tint */
   header, nav, [role="navigation"], [class*="nav"], [class*="menu"], [class*="header"] {
-    background-color: rgba(10, 8, 22, 0.45) !important;
+    background-color: rgba(10, 10, 10, 0.35) !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
   }
 
@@ -54,8 +51,7 @@ const GLASS_CSS = `
   /* Media elements remain untouched */
   img, video, canvas, svg, iframe, picture {
     background-color: transparent !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
+    filter: none !important;
   }
 `;
 

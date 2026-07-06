@@ -44,6 +44,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   cancelSettings: () => ipcRenderer.send('cancel-settings'),
   scanMedia: () => ipcRenderer.invoke('scan-media'),
   triggerAction: (action) => ipcRenderer.send('trigger-action', action),
+  onSettingsChanged: (callback) => ipcRenderer.on('settings-changed', (_event, data) => callback(data)),
 });
 
 function injectDownloaderButton() {

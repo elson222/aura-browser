@@ -115,7 +115,7 @@ function createMainWindow() {
   });
 
   try {
-    mainWindow.setBackgroundMaterial('acrylic');
+    mainWindow.setBackgroundMaterial(glassmorphismEnabled ? 'acrylic' : 'none');
   } catch (e) {
     // Ignore unsupported platform or version
   }
@@ -744,6 +744,14 @@ async function toggleGlassmorphism() {
   saveUserData();
 
   if (mainWindow) {
+    try {
+      mainWindow.setBackgroundMaterial(glassmorphismEnabled ? 'acrylic' : 'none');
+    } catch (e) {
+      // ignore
+    }
+
+    mainWindow.webContents.send('settings-changed', { glassmorphismEnabled });
+
     if (glassmorphismEnabled) {
       glassmorphismCssKey = await glassmorphism.injectGlassmorphism(mainWindow.webContents, true);
     } else {
