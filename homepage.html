@@ -65,7 +65,7 @@
       position: relative;
       z-index: 10;
       text-align: center;
-      max-width: 600px;
+      max-width: 680px;
       padding: 40px;
     }
 
@@ -114,55 +114,66 @@
       margin-bottom: 40px;
     }
 
-    .instructions-card {
+    .shortcuts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+
+    .shortcut-card {
       background: var(--card-bg);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border: 1px solid var(--card-border);
-      border-radius: 20px;
-      padding: 30px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-      margin-bottom: 30px;
-      transition: transform 0.3s ease, border-color 0.3s ease;
-    }
-
-    .instructions-card:hover {
-      border-color: rgba(123, 44, 191, 0.3);
-      transform: translateY(-2px);
-    }
-
-    .shortcut-row {
+      border-radius: 14px;
+      padding: 16px 18px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      transition: transform 0.25s ease, border-color 0.25s ease;
     }
 
-    .shortcut-row:last-child {
-      margin-bottom: 0;
+    .shortcut-card:hover {
+      border-color: rgba(123, 44, 191, 0.3);
+      transform: translateY(-1px);
     }
 
     .shortcut-desc {
-      font-size: 15px;
+      font-size: 13px;
       color: var(--text-sub);
       text-align: left;
     }
 
     .key-caps {
       display: flex;
-      gap: 6px;
+      gap: 4px;
+      flex-shrink: 0;
+      margin-left: 10px;
     }
 
     kbd {
       background: rgba(255, 255, 255, 0.07);
       border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 8px;
-      padding: 6px 12px;
-      font-size: 13px;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 11px;
       font-weight: 600;
       color: var(--text-main);
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
       font-family: inherit;
+      white-space: nowrap;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #6d6693;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 10px;
+      grid-column: 1 / -1;
+      text-align: left;
     }
 
     .tip-section {
@@ -180,29 +191,102 @@
       background-color: #00f5d4;
       border-radius: 50%;
       box-shadow: 0 0 10px #00f5d4;
-      animation: pulse 1.5s infinite alternate;
+      animation: pulse-dot 1.5s infinite alternate;
     }
 
-    @keyframes pulse {
-      0% {
-        transform: scale(0.9) translate(-50%, -50%);
-        opacity: 0.6;
-      }
-      100% {
-        transform: scale(1.1) translate(-50%, -50%);
-        opacity: 1;
-      }
+    .feature-badges {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
     }
 
-    @keyframes pulse-dot {
-      0% {
-        transform: scale(0.8);
-        opacity: 0.5;
-      }
-      100% {
-        transform: scale(1.2);
-        opacity: 1;
-      }
+    .feature-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: rgba(123, 44, 191, 0.12);
+      border: 1px solid rgba(123, 44, 191, 0.25);
+      color: #d896ff;
+      letter-spacing: 0.3px;
+    }
+
+    .feature-badge.green {
+      background: rgba(0, 245, 212, 0.08);
+      border-color: rgba(0, 245, 212, 0.2);
+      color: #00f5d4;
+    }
+
+    .settings-bar {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 40px;
+      padding: 15px 30px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .setting-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--text-sub);
+    }
+
+    /* Switch Styling */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 38px;
+      height: 20px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255, 255, 255, 0.1);
+      transition: .3s;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 12px;
+      width: 12px;
+      left: 3px;
+      bottom: 3px;
+      background-color: var(--text-main);
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--accent-color);
+      border-color: rgba(123, 44, 191, 0.4);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(18px);
     }
   </style>
 </head>
@@ -217,45 +301,123 @@
     </div>
 
     <h1>Aura Browser</h1>
-    <p class="tagline">An immersive, borderless fullscreen browsing experience.</p>
+    <p class="tagline">Immersive, borderless browsing with built-in superpowers.</p>
 
-    <div class="instructions-card">
-      <div class="shortcut-row">
-        <span class="shortcut-desc">Search, Google or open a URL</span>
-        <div class="key-caps">
-          <kbd>Ctrl</kbd>
-          <kbd>T</kbd>
-        </div>
+    <div class="feature-badges">
+      <span class="feature-badge green">Ad Blocker</span>
+      <span class="feature-badge">Dark Mode</span>
+      <span class="feature-badge">Media Downloader</span>
+      <span class="feature-badge">Extensions</span>
+      <span class="feature-badge">Glassmorphism</span>
+    </div>
+
+    <div class="shortcuts-grid">
+      <div class="section-label">Navigation</div>
+
+      <div class="shortcut-card">
+        <span class="shortcut-desc">Search / Open URL</span>
+        <div class="key-caps"><kbd>Ctrl</kbd><kbd>T</kbd></div>
       </div>
-      <div class="shortcut-row">
-        <span class="shortcut-desc">Reload current webpage</span>
-        <div class="key-caps">
-          <kbd>Ctrl</kbd>
-          <kbd>R</kbd>
-        </div>
+      <div class="shortcut-card">
+        <span class="shortcut-desc">Reload Page</span>
+        <div class="key-caps"><kbd>Ctrl</kbd><kbd>R</kbd></div>
       </div>
-      <div class="shortcut-row">
-        <span class="shortcut-desc">Go Back / Go Forward</span>
-        <div class="key-caps">
-          <kbd>Alt</kbd>
-          <kbd>←</kbd>
-          <kbd>/</kbd>
-          <kbd>→</kbd>
-        </div>
+      <div class="shortcut-card">
+        <span class="shortcut-desc">Go Back / Forward</span>
+        <div class="key-caps"><kbd>Alt</kbd><kbd>← →</kbd></div>
       </div>
-      <div class="shortcut-row">
-        <span class="shortcut-desc">Close browser application</span>
-        <div class="key-caps">
-          <kbd>Alt</kbd>
-          <kbd>F4</kbd>
-        </div>
+      <div class="shortcut-card">
+        <span class="shortcut-desc">Bookmark Page</span>
+        <div class="key-caps"><kbd>Ctrl</kbd><kbd>D</kbd></div>
+      </div>
+
+      <div class="section-label">Features</div>
+
+      <div class="shortcut-card">
+        <span class="shortcut-desc">Downloads</span>
+        <div class="key-caps"><kbd>Ctrl</kbd><kbd>J</kbd></div>
+      </div>
+      <div class="shortcut-card">
+        <span class="shortcut-desc">Toggle Dark Mode</span>
+        <div class="key-caps"><kbd>Ctrl</kbd><kbd>⇧</kbd><kbd>D</kbd></div>
+      </div>
+      <div class="shortcut-card">
+        <span class="shortcut-desc">Toggle Glassmorphism</span>
+        <div class="key-caps"><kbd>Ctrl</kbd><kbd>⇧</kbd><kbd>G</kbd></div>
+      </div>
+      <div class="shortcut-card">
+        <span class="shortcut-desc">Extensions</span>
+        <div class="key-caps"><kbd>Ctrl</kbd><kbd>⇧</kbd><kbd>E</kbd></div>
+      </div>
+
+      <div class="section-label">Tools</div>
+
+      <div class="shortcut-card">
+        <span class="shortcut-desc">Zoom In / Out</span>
+        <div class="key-caps"><kbd>Ctrl</kbd><kbd>+ −</kbd></div>
+      </div>
+      <div class="shortcut-card">
+        <span class="shortcut-desc">DevTools</span>
+        <div class="key-caps"><kbd>F12</kbd></div>
+      </div>
+      <div class="shortcut-card">
+        <span class="shortcut-desc">Print Page</span>
+        <div class="key-caps"><kbd>Ctrl</kbd><kbd>P</kbd></div>
+      </div>
+      <div class="shortcut-card">
+        <span class="shortcut-desc">Fullscreen</span>
+        <div class="key-caps"><kbd>F11</kbd></div>
       </div>
     </div>
 
-    <div class="tip-section">
+    <div class="settings-bar">
+      <div class="setting-item">
+        <span>Dark Mode</span>
+        <label class="switch">
+          <input type="checkbox" id="dark-mode-toggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="setting-item">
+        <span>Glassmorphism</span>
+        <label class="switch">
+          <input type="checkbox" id="glass-toggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="tip-section" style="margin-top: 30px;">
       <div class="pulse-dot"></div>
-      <span>Press Ctrl + T now to begin your session</span>
+      <span>Press Ctrl + T to begin your session</span>
     </div>
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const dmToggle = document.getElementById('dark-mode-toggle');
+      const glassToggle = document.getElementById('glass-toggle');
+
+      if (window.electronAPI) {
+        // Load initial states
+        const dmStatus = await window.electronAPI.getDarkModeStatus();
+        const glassStatus = await window.electronAPI.getGlassmorphismStatus();
+
+        dmToggle.checked = dmStatus;
+        glassToggle.checked = glassStatus;
+
+        // Listen for user changes
+        dmToggle.addEventListener('change', async () => {
+          const enabled = await window.electronAPI.toggleDarkMode();
+          dmToggle.checked = enabled;
+        });
+
+        glassToggle.addEventListener('change', async () => {
+          const enabled = await window.electronAPI.toggleGlassmorphism();
+          glassToggle.checked = enabled;
+        });
+      }
+    });
+  </script>
 </body>
 </html>
