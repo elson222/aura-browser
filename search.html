@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search Navigation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="search.css">
+</head>
+<body>
+  <div class="search-wrapper">
+    <div class="search-container">
+      <div class="search-icon">🔍</div>
+      <input 
+        type="text" 
+        id="search-input" 
+        placeholder="Search Google, use !d, !yt, !wiki, or type a URL..." 
+        autocomplete="off" 
+        spellcheck="false" 
+        autofocus 
+      />
+      <div class="enter-badge">Enter ↵</div>
+    </div>
+    <div class="suggestions-container" id="suggestions-list">
+      <!-- Suggestions dynamically rendered here -->
+    </div>
+  </div>
+  <script src="search.js"></script>
+</body>
+</html>

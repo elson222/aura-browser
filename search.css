@@ -1,0 +1,204 @@
+body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  font-family: 'Outfit', sans-serif;
+  overflow: hidden;
+  height: 100vh;
+  display: flex;
+  align-items: flex-start; /* Align to top because window is now taller */
+  justify-content: center;
+  padding-top: 10px;
+}
+
+.search-wrapper {
+  width: 100%;
+  max-width: 630px;
+  display: flex;
+  flex-direction: column;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 64px;
+  background: rgba(18, 14, 32, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 0 20px;
+  box-shadow: 
+    0 15px 35px rgba(0, 0, 0, 0.6), 
+    0 0 30px rgba(123, 44, 191, 0.25);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  box-sizing: border-box;
+  z-index: 10;
+}
+
+.search-container:focus-within {
+  border-color: rgba(123, 44, 191, 0.6);
+  box-shadow: 
+    0 15px 35px rgba(0, 0, 0, 0.6), 
+    0 0 30px rgba(123, 44, 191, 0.45);
+}
+
+.search-icon {
+  font-size: 20px;
+  color: #a7a2c4;
+  margin-right: 15px;
+  user-select: none;
+}
+
+input[type="text"] {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 17px;
+  color: #f3f0fc;
+  height: 100%;
+}
+
+input[type="text"]::placeholder {
+  color: #6d6693;
+}
+
+.enter-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #a7a2c4;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 4px 10px;
+  border-radius: 6px;
+  user-select: none;
+  opacity: 0.7;
+  transition: opacity 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+.search-container:focus-within .enter-badge {
+  opacity: 1;
+  border-color: rgba(123, 44, 191, 0.4);
+  color: #f3f0fc;
+}
+
+/* Suggestions Box */
+.suggestions-container {
+  display: none; /* Hidden when empty */
+  flex-direction: column;
+  margin-top: 10px;
+  background: rgba(18, 14, 32, 0.85);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  max-height: 280px;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.suggestions-container.show {
+  display: flex;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.suggestion-item:hover, .suggestion-item.selected {
+  background: rgba(123, 44, 191, 0.25);
+  border: 1px solid rgba(123, 44, 191, 0.2);
+}
+
+.suggestion-item.selected {
+  transform: translateX(2px);
+}
+
+.item-icon {
+  font-size: 16px;
+  margin-right: 12px;
+  width: 20px;
+  text-align: center;
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0; /* truncate text if too long */
+}
+
+.item-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f3f0fc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-url {
+  font-size: 11px;
+  color: #7d779f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.item-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-left: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-bookmark {
+  background: rgba(255, 184, 0, 0.1);
+  color: #ffb800;
+  border: 1px solid rgba(255, 184, 0, 0.2);
+}
+
+.badge-history {
+  background: rgba(0, 245, 212, 0.1);
+  color: #00f5d4;
+  border: 1px solid rgba(0, 245, 212, 0.2);
+}
+
+.badge-engine {
+  background: rgba(123, 44, 191, 0.15);
+  color: #d896ff;
+  border: 1px solid rgba(123, 44, 191, 0.3);
+}
+
+/* Custom Scrollbar for suggestions */
+.suggestions-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.suggestions-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.suggestions-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.suggestions-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}

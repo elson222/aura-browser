@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aura Browser</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f0c20 0%, #15102a 50%, #060210 100%);
+      --accent-color: #7b2cbf;
+      --accent-glow: rgba(123, 44, 191, 0.45);
+      --card-bg: rgba(255, 255, 255, 0.03);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-main: #f3f0fc;
+      --text-sub: #a7a2c4;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    /* Ambient background glows */
+    .glow-sphere {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(160px);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .glow-1 {
+      top: -10%;
+      left: -10%;
+      width: 50vw;
+      height: 50vw;
+      background: rgba(123, 44, 191, 0.15);
+    }
+
+    .glow-2 {
+      bottom: -10%;
+      right: -10%;
+      width: 50vw;
+      height: 50vw;
+      background: rgba(62, 17, 107, 0.2);
+    }
+
+    .container {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      max-width: 600px;
+      padding: 40px;
+    }
+
+    .logo-container {
+      margin-bottom: 30px;
+      position: relative;
+      display: inline-block;
+    }
+
+    .logo-glow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 120px;
+      height: 120px;
+      background: var(--accent-glow);
+      filter: blur(40px);
+      border-radius: 50%;
+      z-index: -1;
+      animation: pulse 4s infinite alternate;
+    }
+
+    .logo-icon {
+      font-size: 80px;
+      background: linear-gradient(135deg, #e0aaff 0%, #7b2cbf 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      user-select: none;
+    }
+
+    h1 {
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+      background: linear-gradient(to right, #ffffff, #dcd7f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p.tagline {
+      font-size: 18px;
+      font-weight: 300;
+      color: var(--text-sub);
+      margin-bottom: 40px;
+    }
+
+    .instructions-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      margin-bottom: 30px;
+      transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+
+    .instructions-card:hover {
+      border-color: rgba(123, 44, 191, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .shortcut-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .shortcut-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .shortcut-desc {
+      font-size: 15px;
+      color: var(--text-sub);
+      text-align: left;
+    }
+
+    .key-caps {
+      display: flex;
+      gap: 6px;
+    }
+
+    kbd {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      font-family: inherit;
+    }
+
+    .tip-section {
+      font-size: 13px;
+      color: #6d6693;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #00f5d4;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #00f5d4;
+      animation: pulse 1.5s infinite alternate;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(0.9) translate(-50%, -50%);
+        opacity: 0.6;
+      }
+      100% {
+        transform: scale(1.1) translate(-50%, -50%);
+        opacity: 1;
+      }
+    }
+
+    @keyframes pulse-dot {
+      0% {
+        transform: scale(0.8);
+        opacity: 0.5;
+      }
+      100% {
+        transform: scale(1.2);
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="glow-sphere glow-1"></div>
+  <div class="glow-sphere glow-2"></div>
+
+  <div class="container">
+    <div class="logo-container">
+      <div class="logo-glow"></div>
+      <div class="logo-icon">✦</div>
+    </div>
+
+    <h1>Aura Browser</h1>
+    <p class="tagline">An immersive, borderless fullscreen browsing experience.</p>
+
+    <div class="instructions-card">
+      <div class="shortcut-row">
+        <span class="shortcut-desc">Search, Google or open a URL</span>
+        <div class="key-caps">
+          <kbd>Ctrl</kbd>
+          <kbd>T</kbd>
+        </div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-desc">Reload current webpage</span>
+        <div class="key-caps">
+          <kbd>Ctrl</kbd>
+          <kbd>R</kbd>
+        </div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-desc">Go Back / Go Forward</span>
+        <div class="key-caps">
+          <kbd>Alt</kbd>
+          <kbd>←</kbd>
+          <kbd>/</kbd>
+          <kbd>→</kbd>
+        </div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-desc">Close browser application</span>
+        <div class="key-caps">
+          <kbd>Alt</kbd>
+          <kbd>F4</kbd>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip-section">
+      <div class="pulse-dot"></div>
+      <span>Press Ctrl + T now to begin your session</span>
+    </div>
+  </div>
+</body>
+</html>

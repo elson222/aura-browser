@@ -1,0 +1,30 @@
+{
+  "name": "fullscreen-browser",
+  "version": "1.0.0",
+  "description": "A completely fullscreen borderless browser application with an overlay search bar.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win"
+  },
+  "keywords": [],
+  "author": "Aura",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.aura.browser",
+    "productName": "AuraBrowser",
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "directories": {
+      "output": "dist"
+    }
+  }
+}
