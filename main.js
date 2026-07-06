@@ -588,8 +588,9 @@ function showSettingsOverlay() {
   settingsWindow.webContents.send('settings-loaded', {
     adBlockerEnabled,
     darkModeEnabled,
-    glassmorphismEnabled,
-    saveHistoryEnabled
+    saveHistoryEnabled,
+    vpnEnabled,
+    darkThemeStyle
   });
   settingsWindow.show();
   settingsWindow.focus();
