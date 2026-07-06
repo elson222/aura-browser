@@ -24,10 +24,11 @@ try {
   // ignore
 }
 
-// Enable Chromium Native Auto-Dark Mode if active
-if (darkModeEnabled) {
-  app.commandLine.appendSwitch('enable-features', 'WebContentsForceDark');
-}
+// Configure native color scheme preference so pages serve native dark themes
+app.whenReady().then(() => {
+  const { nativeTheme } = require('electron');
+  nativeTheme.themeSource = darkModeEnabled ? 'dark' : 'light';
+});
 
 const darkMode = require('./dark-mode');
 const downloadsModule = require('./downloads');
@@ -38,6 +39,7 @@ let searchWindow;
 let extensionsWindow;
 let downloadPopupWindow;
 let settingsWindow;
+let darkModeCssKey = null;
 
 // Ad Blocker domains list
 const adDomains = [
@@ -170,10 +172,9 @@ function createMainWindow() {
     }, 1000);
   });
 
-  // Inject dark mode and glassmorphism on page load
+  // Inject dark mode on page load
   mainWindow.webContents.on('dom-ready', async () => {
-    darkModeCssKey = await darkMode.injectDarkMode(mainWindow.webContents, darkModeEnabled);
-    glassmorphismCssKey = await glassmorphism.injectGlassmorphism(mainWindow.webContents, glassmorphismEnabled);
+    darkModeCssKey = await darkMode.injectDarkMode(mainWindow.webContents, darkModeEnabled, darkThemeStyle);
 
     // Check for YouTube and detect media
     const url = mainWindow.webContents.getURL();
@@ -188,8 +189,7 @@ function createMainWindow() {
 
   // Also re-inject on in-page navigation (SPA sites)
   mainWindow.webContents.on('did-navigate-in-page', async () => {
-    darkModeCssKey = await darkMode.injectDarkMode(mainWindow.webContents, darkModeEnabled);
-    glassmorphismCssKey = await glassmorphism.injectGlassmorphism(mainWindow.webContents, glassmorphismEnabled);
+    darkModeCssKey = await darkMode.injectDarkMode(mainWindow.webContents, darkModeEnabled, darkThemeStyle);
 
     const url = mainWindow.webContents.getURL();
     if (downloadsModule.isYouTubeVideo(url)) {
