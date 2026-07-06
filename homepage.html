@@ -379,28 +379,6 @@
       <span>Press Ctrl + T to begin your session</span>
     </div>
   </div>
-  <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-      if (window.electronAPI) {
-        const isGlass = await window.electronAPI.getGlassmorphismStatus();
-        if (isGlass) {
-          document.body.style.background = 'transparent';
-          document.documentElement.style.background = 'transparent';
-        }
 
-        if (window.electronAPI.onSettingsChanged) {
-          window.electronAPI.onSettingsChanged((settings) => {
-            if (settings.glassmorphismEnabled) {
-              document.body.style.background = 'transparent';
-              document.documentElement.style.background = 'transparent';
-            } else {
-              document.body.style.background = 'var(--bg-gradient)';
-              document.documentElement.style.background = '';
-            }
-          });
-        }
-      }
-    });
-  </script>
 </body>
 </html>

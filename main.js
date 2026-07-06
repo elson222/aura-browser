@@ -2,28 +2,43 @@ const { app, BrowserWindow, ipcMain, screen, session, dialog, shell } = require(
 const path = require('path');
 const fs = require('fs');
 
-// Force hardware acceleration and transparent visuals
-app.commandLine.appendSwitch('enable-transparent-visuals');
+let darkModeEnabled = true; // Default on
+let adBlockerEnabled = true; // Default on
+let saveHistoryEnabled = true; // Default on
+let vpnEnabled = false; // Default off
+
+// Load settings early to apply Chromium command-line switches
+try {
+  const userDataPath = path.join(app.getPath('userData'), 'userData.json');
+  if (fs.existsSync(userDataPath)) {
+    const loaded = JSON.parse(fs.readFileSync(userDataPath, 'utf8'));
+    darkModeEnabled = loaded.darkModeEnabled !== false;
+    adBlockerEnabled = loaded.adBlockerEnabled !== false;
+    saveHistoryEnabled = loaded.saveHistoryEnabled !== false;
+    vpnEnabled = loaded.vpnEnabled === true;
+  }
+} catch (e) {
+  // ignore
+}
+
+// Enable Chromium Native Auto-Dark Mode if active
+if (darkModeEnabled) {
+  app.commandLine.appendSwitch('enable-features', 'WebContentsForceDark');
+}
+
+// Force hardware acceleration
 app.commandLine.appendSwitch('enable-gpu-rasterization');
 app.commandLine.appendSwitch('enable-oop-rasterization');
 app.commandLine.appendSwitch('disable-software-rasterizer');
 
 const darkMode = require('./dark-mode');
 const downloadsModule = require('./downloads');
-const glassmorphism = require('./glassmorphism');
 const vpnModule = require('./vpn');
 
 let mainWindow;
 let searchWindow;
 let extensionsWindow;
 let downloadPopupWindow;
-let darkModeCssKey = null;
-let darkModeEnabled = true; // Default on
-let glassmorphismCssKey = null;
-let glassmorphismEnabled = false; // Default off
-let adBlockerEnabled = true; // Default on
-let saveHistoryEnabled = true; // Default on
-let vpnEnabled = false; // Default off
 let settingsWindow;
 
 // Ad Blocker domains list
@@ -82,7 +97,6 @@ function loadUserData() {
       const loaded = JSON.parse(content);
       userData = { ...userData, ...loaded };
       darkModeEnabled = userData.darkModeEnabled !== false;
-      glassmorphismEnabled = userData.glassmorphismEnabled === true;
       adBlockerEnabled = userData.adBlockerEnabled !== false;
       saveHistoryEnabled = userData.saveHistoryEnabled !== false;
       vpnEnabled = userData.vpnEnabled === true;
@@ -97,7 +111,6 @@ function loadUserData() {
 function saveUserData() {
   try {
     userData.darkModeEnabled = darkModeEnabled;
-    userData.glassmorphismEnabled = glassmorphismEnabled;
     userData.adBlockerEnabled = adBlockerEnabled;
     userData.saveHistoryEnabled = saveHistoryEnabled;
     userData.vpnEnabled = vpnEnabled;
@@ -115,21 +128,14 @@ function createMainWindow() {
   mainWindow = new BrowserWindow({
     fullscreen: true,
     frame: false,
-    transparent: true,
-    hasShadow: false,
-    vibrancy: 'under-window',
+    transparent: false,
+    backgroundColor: '#000000',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.js')
     }
   });
-
-  try {
-    mainWindow.setBackgroundMaterial(glassmorphismEnabled ? 'acrylic' : 'none');
-  } catch (e) {
-    // Ignore unsupported platform or version
-  }
 
   mainWindow.setMenu(null);
   mainWindow.loadFile(path.join(__dirname, 'homepage.html'));
@@ -735,41 +741,8 @@ function showDownloadsManager() {
 async function toggleDarkMode() {
   darkModeEnabled = !darkModeEnabled;
   saveUserData();
-
-  if (mainWindow) {
-    if (darkModeEnabled) {
-      darkModeCssKey = await darkMode.injectDarkMode(mainWindow.webContents, true);
-    } else {
-      await darkMode.removeDarkMode(mainWindow.webContents, darkModeCssKey);
-      darkModeCssKey = null;
-    }
-  }
-}
-
-// ============================================================
-// GLASSMORPHISM MODE
-// ============================================================
-
-async function toggleGlassmorphism() {
-  glassmorphismEnabled = !glassmorphismEnabled;
-  saveUserData();
-
-  if (mainWindow) {
-    try {
-      mainWindow.setBackgroundMaterial(glassmorphismEnabled ? 'acrylic' : 'none');
-    } catch (e) {
-      // ignore
-    }
-
-    mainWindow.webContents.send('settings-changed', { glassmorphismEnabled });
-
-    if (glassmorphismEnabled) {
-      glassmorphismCssKey = await glassmorphism.injectGlassmorphism(mainWindow.webContents, true);
-    } else {
-      await glassmorphism.removeGlassmorphism(mainWindow.webContents, glassmorphismCssKey);
-      glassmorphismCssKey = null;
-    }
-  }
+  app.relaunch();
+  app.exit(0);
 }
 
 // ============================================================
@@ -874,22 +847,11 @@ ipcMain.handle('get-dark-mode-status', () => {
   return darkModeEnabled;
 });
 
-// Glassmorphism Mode
-ipcMain.handle('toggle-glassmorphism', async () => {
-  await toggleGlassmorphism();
-  return glassmorphismEnabled;
-});
-
-ipcMain.handle('get-glassmorphism-status', () => {
-  return glassmorphismEnabled;
-});
-
 // Settings Management
 ipcMain.handle('get-settings', () => {
   return {
     adBlockerEnabled,
     darkModeEnabled,
-    glassmorphismEnabled,
     saveHistoryEnabled,
     vpnEnabled
   };
@@ -902,10 +864,6 @@ ipcMain.handle('save-setting', async (event, data) => {
   } else if (key === 'darkModeEnabled') {
     if (darkModeEnabled !== value) {
       await toggleDarkMode();
-    }
-  } else if (key === 'glassmorphismEnabled') {
-    if (glassmorphismEnabled !== value) {
-      await toggleGlassmorphism();
     }
   } else if (key === 'saveHistoryEnabled') {
     saveHistoryEnabled = value;

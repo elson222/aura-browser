@@ -18,9 +18,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   toggleDarkMode: () => ipcRenderer.invoke('toggle-dark-mode'),
   getDarkModeStatus: () => ipcRenderer.invoke('get-dark-mode-status'),
 
-  // === Glassmorphism Mode ===
-  toggleGlassmorphism: () => ipcRenderer.invoke('toggle-glassmorphism'),
-  getGlassmorphismStatus: () => ipcRenderer.invoke('get-glassmorphism-status'),
 
   // === Downloads ===
   getDownloads: () => ipcRenderer.invoke('get-downloads'),
@@ -137,13 +134,7 @@ function injectSidePanel() {
           <span class="aura-slider"></span>
         </label>
       </div>
-      <div class="sidebar-row">
-        <span>🔮 Glassmorphism</span>
-        <label class="aura-switch">
-          <input type="checkbox" id="aura-sidebar-glass">
-          <span class="aura-slider"></span>
-        </label>
-      </div>
+
       <div class="sidebar-row">
         <span>🕒 Save History</span>
         <label class="aura-switch">
@@ -386,7 +377,6 @@ function injectSidePanel() {
       if (settings) {
         document.getElementById('aura-sidebar-adblock').checked = settings.adBlockerEnabled;
         document.getElementById('aura-sidebar-darkmode').checked = settings.darkModeEnabled;
-        document.getElementById('aura-sidebar-glass').checked = settings.glassmorphismEnabled;
         document.getElementById('aura-sidebar-history').checked = settings.saveHistoryEnabled;
         document.getElementById('aura-sidebar-vpn').checked = settings.vpnEnabled;
       }
@@ -409,7 +399,6 @@ function injectSidePanel() {
 
   bindToggle('aura-sidebar-adblock', 'adBlockerEnabled');
   bindToggle('aura-sidebar-darkmode', 'darkModeEnabled');
-  bindToggle('aura-sidebar-glass', 'glassmorphismEnabled');
   bindToggle('aura-sidebar-history', 'saveHistoryEnabled');
   bindToggle('aura-sidebar-vpn', 'vpnEnabled');
 
