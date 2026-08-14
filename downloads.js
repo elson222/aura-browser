@@ -163,7 +163,7 @@ async function detectYouTubeMedia(webContents) {
       qualities: qualities.map(q => q.label),
       isYouTube: true,
       videoId: videoId,
-      icon: '🎬'
+      icon: 'video'
     }];
   } catch (err) {
     console.error('YouTube detection failed:', err.message);
@@ -213,7 +213,7 @@ async function scanPageForMedia(webContents) {
               type: 'video',
               size: null,
               quality: 'Original',
-              icon: '🎬'
+              icon: 'video'
             });
           }
         });
@@ -233,7 +233,7 @@ async function scanPageForMedia(webContents) {
               type: 'audio',
               size: null,
               quality: 'Original',
-              icon: '🎵'
+              icon: 'audio'
             });
           }
         });

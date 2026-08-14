@@ -1,91 +1,50 @@
-const { app, BrowserWindow, ipcMain, screen, session, dialog, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, screen, session, dialog, shell, nativeTheme } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
-let darkModeEnabled = true; // Default on
-let adBlockerEnabled = true; // Default on
-let saveHistoryEnabled = true; // Default on
-let vpnEnabled = false; // Default off
-let darkThemeStyle = 'grey'; // 'grey' or 'black'
-let deepBlackCssKey = null;
-
-// Load settings early to apply Chromium command-line switches
-try {
-  const userDataPath = path.join(app.getPath('userData'), 'userData.json');
-  if (fs.existsSync(userDataPath)) {
-    const loaded = JSON.parse(fs.readFileSync(userDataPath, 'utf8'));
-    darkModeEnabled = loaded.darkModeEnabled !== false;
-    adBlockerEnabled = loaded.adBlockerEnabled !== false;
-    saveHistoryEnabled = loaded.saveHistoryEnabled !== false;
-    vpnEnabled = loaded.vpnEnabled === true;
-    darkThemeStyle = loaded.darkThemeStyle || 'grey';
-  }
-} catch (e) {
-  // ignore
-}
-
-// Configure native color scheme preference so pages serve native dark themes
-app.whenReady().then(() => {
-  const { nativeTheme } = require('electron');
-  nativeTheme.themeSource = darkModeEnabled ? 'dark' : 'light';
-});
-
+// Internal Modules
 const darkMode = require('./dark-mode');
 const downloadsModule = require('./downloads');
 const vpnModule = require('./vpn');
+const adblocker = require('./adblocker');
+const crxLoader = require('./crx-loader');
 
-let mainWindow;
-let searchWindow;
-let extensionsWindow;
-let downloadPopupWindow;
-let settingsWindow;
-let darkModeCssKey = null;
+// User Preferences State
+let darkModeEnabled = true;
+let adBlockerEnabled = true;
+let saveHistoryEnabled = true;
+let mouseGesturesEnabled = true;
+let vpnEnabled = false;
+let darkThemeStyle = 'grey'; // 'grey' or 'black'
+let deepBlackCssKey = null;
+let adblockCosmeticCssKey = null;
 
-// Ad Blocker domains list
-const adDomains = [
-  'doubleclick.net',
-  'google-analytics.com',
-  'googletagservices.com',
-  'googletagmanager.com',
-  'adservice.google.com',
-  'adservice.google.co.in',
-  'googleads.g.doubleclick.net',
-  'stats.g.doubleclick.net',
-  'adnxs.com',
-  'advertising.com',
-  'adtech.de',
-  'casalemedia.com',
-  'rubiconproject.com',
-  'pubmatic.com',
-  'openx.net',
-  'criteo.com',
-  'yieldmanager.com',
-  'outbrain.com',
-  'taboola.com',
-  'adroll.com',
-  'smartadserver.com',
-  'exponential.com',
-  'popads.net',
-  'popcash.net',
-  'propellerads.com',
-  'zeroredirect1.com'
-];
+// Esc timing tracking for fast double-press exit
+let lastEscTimestamp = 0;
+const DOUBLE_ESC_THRESHOLD_MS = 400;
 
-// User Data (History & Bookmarks)
+// User Data Path
 const userDataPath = path.join(app.getPath('userData'), 'userData.json');
+const extensionsDir = path.join(app.getPath('userData'), 'extensions');
+
 let userData = {
   history: [],
   bookmarks: [
     { title: "Google", url: "https://www.google.com" },
     { title: "GitHub", url: "https://github.com" },
-    { title: "YouTube", url: "https://www.youtube.com" }
+    { title: "YouTube", url: "https://www.youtube.com" },
+    { title: "Wikipedia", url: "https://www.wikipedia.org" }
   ],
   darkModeEnabled: true,
+  adBlockerEnabled: true,
+  saveHistoryEnabled: true,
+  mouseGesturesEnabled: true,
+  vpnEnabled: false,
+  darkThemeStyle: 'grey',
   extensions: []
 };
 
-// Extensions directory
-const extensionsDir = path.join(app.getPath('userData'), 'extensions');
+// Ensure extensions directory exists
 if (!fs.existsSync(extensionsDir)) {
   fs.mkdirSync(extensionsDir, { recursive: true });
 }
@@ -99,6 +58,7 @@ function loadUserData() {
       darkModeEnabled = userData.darkModeEnabled !== false;
       adBlockerEnabled = userData.adBlockerEnabled !== false;
       saveHistoryEnabled = userData.saveHistoryEnabled !== false;
+      mouseGesturesEnabled = userData.mouseGesturesEnabled !== false;
       vpnEnabled = userData.vpnEnabled === true;
       darkThemeStyle = userData.darkThemeStyle || 'grey';
     } else {
@@ -114,6 +74,7 @@ function saveUserData() {
     userData.darkModeEnabled = darkModeEnabled;
     userData.adBlockerEnabled = adBlockerEnabled;
     userData.saveHistoryEnabled = saveHistoryEnabled;
+    userData.mouseGesturesEnabled = mouseGesturesEnabled;
     userData.vpnEnabled = vpnEnabled;
     userData.darkThemeStyle = darkThemeStyle;
     fs.writeFileSync(userDataPath, JSON.stringify(userData, null, 2), 'utf8');
@@ -122,19 +83,41 @@ function saveUserData() {
   }
 }
 
+// Early settings load
+try {
+  if (fs.existsSync(userDataPath)) {
+    const loaded = JSON.parse(fs.readFileSync(userDataPath, 'utf8'));
+    darkModeEnabled = loaded.darkModeEnabled !== false;
+    adBlockerEnabled = loaded.adBlockerEnabled !== false;
+  }
+} catch (e) {}
+
+// Window References
+let mainWindow = null;
+let searchWindow = null;
+let extensionsWindow = null;
+let downloadPopupWindow = null;
+let settingsWindow = null;
+let exitModalWindow = null;
+let darkModeCssKey = null;
+
 // ============================================================
-// WINDOWS
+// MAIN WINDOW CREATION
 // ============================================================
 
 function createMainWindow() {
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { width, height } = primaryDisplay.workAreaSize;
+
   mainWindow = new BrowserWindow({
     fullscreen: true,
     frame: false,
     transparent: false,
-    backgroundColor: '#000000',
+    backgroundColor: '#0a0a0c',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: false,
       preload: path.join(__dirname, 'preload.js')
     }
   });
@@ -144,6 +127,7 @@ function createMainWindow() {
 
   mainWindow.webContents.on('did-finish-load', () => {
     applyDarkThemeStyle();
+    applyAdBlockerCosmetics();
   });
 
   mainWindow.on('closed', () => {
@@ -152,29 +136,31 @@ function createMainWindow() {
     if (extensionsWindow) extensionsWindow.close();
     if (downloadPopupWindow) downloadPopupWindow.close();
     if (settingsWindow) settingsWindow.close();
+    if (exitModalWindow) exitModalWindow.close();
   });
 
-  // Track History on Navigation
+  // Track History
   mainWindow.webContents.on('did-navigate', (event, url) => {
     if (url.startsWith('file://') || !saveHistoryEnabled) return;
-    
+
     setTimeout(() => {
       if (!mainWindow) return;
       const title = mainWindow.webContents.getTitle() || url;
-      
+
       userData.history = userData.history.filter(item => item.url !== url);
       userData.history.unshift({ title, url, timestamp: Date.now() });
-      
-      if (userData.history.length > 200) {
+
+      if (userData.history.length > 300) {
         userData.history.pop();
       }
       saveUserData();
     }, 1000);
   });
 
-  // Inject dark mode on page load
+  // Inject dark mode & adblock cosmetic filters on DOM ready
   mainWindow.webContents.on('dom-ready', async () => {
     darkModeCssKey = await darkMode.injectDarkMode(mainWindow.webContents, darkModeEnabled, darkThemeStyle);
+    await applyAdBlockerCosmetics();
 
     // Check for YouTube and detect media
     const url = mainWindow.webContents.getURL();
@@ -187,9 +173,10 @@ function createMainWindow() {
     }
   });
 
-  // Also re-inject on in-page navigation (SPA sites)
+  // Re-inject on SPA in-page navigation
   mainWindow.webContents.on('did-navigate-in-page', async () => {
     darkModeCssKey = await darkMode.injectDarkMode(mainWindow.webContents, darkModeEnabled, darkThemeStyle);
+    await applyAdBlockerCosmetics();
 
     const url = mainWindow.webContents.getURL();
     if (downloadsModule.isYouTubeVideo(url)) {
@@ -199,12 +186,12 @@ function createMainWindow() {
           downloadPopupWindow.webContents.send('media-detected', ytMedia);
           downloadPopupWindow.show();
         }
-      }, 2000);
+      }, 1500);
     }
   });
 
   // ============================================================
-  // KEYBOARD SHORTCUTS
+  // KEYBOARD SHORTCUTS & ESCAPE LOGIC
   // ============================================================
   mainWindow.webContents.on('before-input-event', (event, input) => {
     if (input.type !== 'keyDown') return;
@@ -213,7 +200,37 @@ function createMainWindow() {
     const shift = input.shift;
     const alt = input.alt;
 
-    // Ctrl+T or Ctrl+L — Search overlay
+    // Control + Escape -> Minimize or Toggle Window Mode
+    if (ctrl && input.key === 'Escape') {
+      event.preventDefault();
+      handleCtrlEsc();
+      return;
+    }
+
+    // Escape Key Handling (Single Esc Confirm / Double Esc Instant Exit)
+    if (input.key === 'Escape' && !ctrl && !shift && !alt) {
+      event.preventDefault();
+
+      // If an overlay window is currently open, close it instead of showing exit prompt
+      if (isAnyOverlayVisible()) {
+        hideAllOverlays();
+        return;
+      }
+
+      // Check for fast double Escape press
+      const now = Date.now();
+      if (now - lastEscTimestamp <= DOUBLE_ESC_THRESHOLD_MS) {
+        app.quit();
+        return;
+      }
+      lastEscTimestamp = now;
+
+      // Show Exit Confirmation Modal
+      showExitModal();
+      return;
+    }
+
+    // Ctrl+T or Ctrl+L — Search Omnibox
     if (ctrl && !shift && (key === 't' || key === 'l')) {
       event.preventDefault();
       showSearchOverlay();
@@ -274,13 +291,6 @@ function createMainWindow() {
       return;
     }
 
-    // Ctrl+Shift+G — Toggle glassmorphism mode
-    if (ctrl && shift && key === 'g') {
-      event.preventDefault();
-      toggleGlassmorphism();
-      return;
-    }
-
     // Ctrl+Shift+E — Extensions manager
     if (ctrl && shift && key === 'e') {
       event.preventDefault();
@@ -288,7 +298,7 @@ function createMainWindow() {
       return;
     }
 
-    // Ctrl+H — History (show in search overlay with history focus)
+    // Ctrl+H — History
     if (ctrl && !shift && key === 'h') {
       event.preventDefault();
       showSearchOverlay();
@@ -318,13 +328,6 @@ function createMainWindow() {
       return;
     }
 
-    // Ctrl+F — Find in page
-    if (ctrl && !shift && key === 'f') {
-      // Let Electron handle find-in-page natively
-      // We'll implement a custom one later if needed
-      return;
-    }
-
     // Ctrl+P — Print
     if (ctrl && !shift && key === 'p') {
       event.preventDefault();
@@ -342,14 +345,14 @@ function createMainWindow() {
     // Ctrl+U — View source
     if (ctrl && !shift && key === 'u') {
       event.preventDefault();
-      const url = mainWindow.webContents.getURL();
-      if (!url.startsWith('file://')) {
-        mainWindow.loadURL('view-source:' + url);
+      const currentUrl = mainWindow.webContents.getURL();
+      if (!currentUrl.startsWith('file://')) {
+        mainWindow.loadURL('view-source:' + currentUrl);
       }
       return;
     }
 
-    // F11 — Toggle fullscreen
+    // F11 — Fullscreen toggle
     if (key === 'f11') {
       event.preventDefault();
       mainWindow.setFullScreen(!mainWindow.isFullScreen());
@@ -363,14 +366,6 @@ function createMainWindow() {
       return;
     }
 
-    // Escape — Stop loading or go home
-    if (key === 'escape') {
-      if (mainWindow.webContents.isLoading()) {
-        mainWindow.webContents.stop();
-      }
-      return;
-    }
-
     // Ctrl+Shift+Delete — Clear browsing data
     if (ctrl && shift && key === 'delete') {
       event.preventDefault();
@@ -380,13 +375,46 @@ function createMainWindow() {
   });
 }
 
+function handleCtrlEsc() {
+  if (!mainWindow) return;
+  if (mainWindow.isFullScreen()) {
+    mainWindow.setFullScreen(false);
+    mainWindow.setSize(1280, 800);
+    mainWindow.center();
+  } else if (!mainWindow.isMinimized()) {
+    mainWindow.minimize();
+  } else {
+    mainWindow.restore();
+    mainWindow.setFullScreen(true);
+  }
+}
+
+function isAnyOverlayVisible() {
+  return (
+    (searchWindow && searchWindow.isVisible()) ||
+    (settingsWindow && settingsWindow.isVisible()) ||
+    (extensionsWindow && extensionsWindow.isVisible()) ||
+    (downloadPopupWindow && downloadPopupWindow.isVisible()) ||
+    (exitModalWindow && exitModalWindow.isVisible())
+  );
+}
+
+function hideAllOverlays() {
+  if (searchWindow && searchWindow.isVisible()) searchWindow.hide();
+  if (settingsWindow && settingsWindow.isVisible()) settingsWindow.hide();
+  if (extensionsWindow && extensionsWindow.isVisible()) extensionsWindow.hide();
+  if (downloadPopupWindow && downloadPopupWindow.isVisible()) downloadPopupWindow.hide();
+  if (exitModalWindow && exitModalWindow.isVisible()) exitModalWindow.hide();
+  if (mainWindow) mainWindow.focus();
+}
+
 async function savePage() {
   if (!mainWindow) return;
-  const url = mainWindow.webContents.getURL();
-  if (url.startsWith('file://')) return;
+  const currentUrl = mainWindow.webContents.getURL();
+  if (currentUrl.startsWith('file://')) return;
 
   const { filePath } = await dialog.showSaveDialog(mainWindow, {
-    defaultPath: path.join(app.getPath('downloads'), mainWindow.webContents.getTitle() + '.html'),
+    defaultPath: path.join(app.getPath('downloads'), (mainWindow.webContents.getTitle() || 'page') + '.html'),
     filters: [
       { name: 'Web Page', extensions: ['html'] },
       { name: 'All Files', extensions: ['*'] }
@@ -410,26 +438,73 @@ async function clearBrowsingData() {
 
 function bookmarkCurrentPage() {
   if (!mainWindow) return;
-  const url = mainWindow.webContents.getURL();
-  if (url.startsWith('file://')) return;
-  const title = mainWindow.webContents.getTitle() || url;
+  const currentUrl = mainWindow.webContents.getURL();
+  if (currentUrl.startsWith('file://')) return;
+  const title = mainWindow.webContents.getTitle() || currentUrl;
 
-  const alreadyBookmarked = userData.bookmarks.some(b => b.url === url);
+  const alreadyBookmarked = userData.bookmarks.some(b => b.url === currentUrl);
   if (!alreadyBookmarked) {
-    userData.bookmarks.unshift({ title, url });
+    userData.bookmarks.unshift({ title, url: currentUrl });
     saveUserData();
   }
 }
 
 // ============================================================
-// SEARCH OVERLAY
+// EXIT MODAL WINDOW
+// ============================================================
+
+function createExitModalWindow() {
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { width, height } = primaryDisplay.workAreaSize;
+
+  exitModalWindow = new BrowserWindow({
+    width: 500,
+    height: 380,
+    x: Math.floor((width - 500) / 2),
+    y: Math.floor((height - 380) / 2),
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    show: false,
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    fullscreenable: false,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js')
+    }
+  });
+
+  exitModalWindow.loadFile(path.join(__dirname, 'exit-modal.html'));
+
+  exitModalWindow.on('blur', () => {
+    hideExitModal();
+  });
+}
+
+function showExitModal() {
+  if (!exitModalWindow) return;
+  exitModalWindow.show();
+  exitModalWindow.focus();
+}
+
+function hideExitModal() {
+  if (!exitModalWindow) return;
+  exitModalWindow.hide();
+  if (mainWindow) mainWindow.focus();
+}
+
+// ============================================================
+// SEARCH / OMNIBOX OVERLAY
 // ============================================================
 
 function createSearchWindow() {
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width } = primaryDisplay.workAreaSize;
-  const overlayWidth = 650;
-  const overlayHeight = 380;
+  const overlayWidth = 680;
+  const overlayHeight = 420;
 
   searchWindow = new BrowserWindow({
     width: overlayWidth,
@@ -482,14 +557,14 @@ function hideSearchOverlay() {
 }
 
 // ============================================================
-// EXTENSIONS OVERLAY
+// EXTENSIONS WINDOW & ENGINE
 // ============================================================
 
 function createExtensionsWindow() {
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width, height } = primaryDisplay.workAreaSize;
-  const overlayWidth = 500;
-  const overlayHeight = 500;
+  const overlayWidth = 560;
+  const overlayHeight = 540;
 
   extensionsWindow = new BrowserWindow({
     width: overlayWidth,
@@ -539,73 +614,6 @@ function hideExtensionsOverlay() {
   if (mainWindow) mainWindow.focus();
 }
 
-// ============================================================
-// SETTINGS OVERLAY
-// ============================================================
-
-function createSettingsWindow() {
-  const primaryDisplay = screen.getPrimaryDisplay();
-  const { width, height } = primaryDisplay.workAreaSize;
-  const overlayWidth = 450;
-  const overlayHeight = 480;
-
-  settingsWindow = new BrowserWindow({
-    width: overlayWidth,
-    height: overlayHeight,
-    x: Math.floor((width - overlayWidth) / 2),
-    y: Math.floor((height - overlayHeight) / 2),
-    frame: false,
-    transparent: true,
-    alwaysOnTop: true,
-    show: false,
-    resizable: false,
-    minimizable: false,
-    maximizable: false,
-    fullscreenable: false,
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js')
-    }
-  });
-
-  settingsWindow.loadFile(path.join(__dirname, 'settings.html'));
-
-  settingsWindow.webContents.on('before-input-event', (event, input) => {
-    if (input.key === 'Escape' && input.type === 'keyDown') {
-      event.preventDefault();
-      hideSettingsOverlay();
-    }
-  });
-
-  settingsWindow.on('blur', () => {
-    hideSettingsOverlay();
-  });
-}
-
-function showSettingsOverlay() {
-  if (!settingsWindow) return;
-  settingsWindow.webContents.send('settings-loaded', {
-    adBlockerEnabled,
-    darkModeEnabled,
-    saveHistoryEnabled,
-    vpnEnabled,
-    darkThemeStyle
-  });
-  settingsWindow.show();
-  settingsWindow.focus();
-}
-
-function hideSettingsOverlay() {
-  if (!settingsWindow) return;
-  settingsWindow.hide();
-  if (mainWindow) mainWindow.focus();
-}
-
-// ============================================================
-// EXTENSIONS ENGINE
-// ============================================================
-
 function getInstalledExtensions() {
   try {
     const allExtensions = session.defaultSession.getAllExtensions();
@@ -614,6 +622,7 @@ function getInstalledExtensions() {
       name: ext.name,
       version: ext.version,
       path: ext.path,
+      description: ext.manifest?.description || '',
       enabled: true
     }));
   } catch {
@@ -621,9 +630,9 @@ function getInstalledExtensions() {
   }
 }
 
-async function installExtension() {
+async function installExtensionFolder() {
   const { filePaths } = await dialog.showOpenDialog({
-    title: 'Select Extension Folder (unpacked)',
+    title: 'Select Unpacked Extension Folder',
     properties: ['openDirectory'],
     buttonLabel: 'Load Extension'
   });
@@ -634,7 +643,6 @@ async function installExtension() {
         allowFileAccess: true
       });
 
-      // Copy to extensions directory for persistence
       const destDir = path.join(extensionsDir, ext.id);
       if (!fs.existsSync(destDir)) {
         copyDirectory(filePaths[0], destDir);
@@ -646,6 +654,57 @@ async function installExtension() {
     }
   }
   return { success: false, error: 'No folder selected' };
+}
+
+async function installExtensionFromPackage() {
+  const { filePaths } = await dialog.showOpenDialog({
+    title: 'Select Extension Package (.crx or .zip)',
+    filters: [
+      { name: 'Chrome Extension Packages', extensions: ['crx', 'zip'] },
+      { name: 'All Files', extensions: ['*'] }
+    ],
+    properties: ['openFile'],
+    buttonLabel: 'Install Package'
+  });
+
+  if (filePaths && filePaths.length > 0) {
+    try {
+      const pkgPath = filePaths[0];
+      const tempExtId = 'pkg_' + Date.now();
+      const destDir = path.join(extensionsDir, tempExtId);
+      crxLoader.extractCrx(pkgPath, destDir);
+
+      const ext = await session.defaultSession.loadExtension(destDir, {
+        allowFileAccess: true
+      });
+
+      return { success: true, extension: { id: ext.id, name: ext.name, version: ext.version } };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  }
+  return { success: false, error: 'No file selected' };
+}
+
+async function installExtensionFromWebStore(inputUrlOrId) {
+  const extensionId = crxLoader.parseExtensionId(inputUrlOrId);
+  if (!extensionId) {
+    return { success: false, error: 'Invalid Chrome Web Store URL or 32-character Extension ID.' };
+  }
+
+  try {
+    const crxBuffer = await crxLoader.downloadCrxFromWebStore(extensionId);
+    const destDir = path.join(extensionsDir, extensionId);
+    crxLoader.extractCrx(crxBuffer, destDir);
+
+    const ext = await session.defaultSession.loadExtension(destDir, {
+      allowFileAccess: true
+    });
+
+    return { success: true, extension: { id: ext.id, name: ext.name, version: ext.version } };
+  } catch (err) {
+    return { success: false, error: 'Failed to install extension: ' + err.message };
+  }
 }
 
 function removeExtension(extensionId) {
@@ -695,7 +754,72 @@ function copyDirectory(src, dest) {
 }
 
 // ============================================================
-// DOWNLOAD POPUP
+// SETTINGS OVERLAY
+// ============================================================
+
+function createSettingsWindow() {
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { width, height } = primaryDisplay.workAreaSize;
+  const overlayWidth = 480;
+  const overlayHeight = 520;
+
+  settingsWindow = new BrowserWindow({
+    width: overlayWidth,
+    height: overlayHeight,
+    x: Math.floor((width - overlayWidth) / 2),
+    y: Math.floor((height - overlayHeight) / 2),
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    show: false,
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    fullscreenable: false,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js')
+    }
+  });
+
+  settingsWindow.loadFile(path.join(__dirname, 'settings.html'));
+
+  settingsWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.key === 'Escape' && input.type === 'keyDown') {
+      event.preventDefault();
+      hideSettingsOverlay();
+    }
+  });
+
+  settingsWindow.on('blur', () => {
+    hideSettingsOverlay();
+  });
+}
+
+function showSettingsOverlay() {
+  if (!settingsWindow) return;
+  settingsWindow.webContents.send('settings-loaded', {
+    adBlockerEnabled,
+    darkModeEnabled,
+    saveHistoryEnabled,
+    mouseGesturesEnabled,
+    vpnEnabled,
+    darkThemeStyle,
+    blockedCount: adblocker.getBlockedCount()
+  });
+  settingsWindow.show();
+  settingsWindow.focus();
+}
+
+function hideSettingsOverlay() {
+  if (!settingsWindow) return;
+  settingsWindow.hide();
+  if (mainWindow) mainWindow.focus();
+}
+
+// ============================================================
+// DOWNLOAD POPUP & MANAGER
 // ============================================================
 
 function createDownloadPopupWindow() {
@@ -724,15 +848,7 @@ function createDownloadPopupWindow() {
   });
 
   downloadPopupWindow.loadFile(path.join(__dirname, 'download-popup.html'));
-
-  downloadPopupWindow.on('blur', () => {
-    // Don't auto-hide, user might be clicking download buttons
-  });
 }
-
-// ============================================================
-// DOWNLOADS MANAGER
-// ============================================================
 
 function showDownloadsManager() {
   if (!mainWindow) return;
@@ -740,26 +856,30 @@ function showDownloadsManager() {
 }
 
 // ============================================================
-// DARK MODE
+// DARK THEME & AD BLOCKER STYLES
 // ============================================================
 
 async function toggleDarkMode() {
   darkModeEnabled = !darkModeEnabled;
+  nativeTheme.themeSource = darkModeEnabled ? 'dark' : 'light';
   saveUserData();
-  app.relaunch();
-  app.exit(0);
+  if (mainWindow) {
+    darkModeCssKey = await darkMode.injectDarkMode(mainWindow.webContents, darkModeEnabled, darkThemeStyle);
+    mainWindow.webContents.send('settings-changed', { darkModeEnabled });
+  }
+  return darkModeEnabled;
 }
 
 async function applyDarkThemeStyle() {
   if (!mainWindow) return;
-  
+
   if (deepBlackCssKey) {
     try {
       await mainWindow.webContents.removeInsertedCSS(deepBlackCssKey);
     } catch (e) {}
     deepBlackCssKey = null;
   }
-  
+
   if (darkModeEnabled && darkThemeStyle === 'black') {
     try {
       deepBlackCssKey = await mainWindow.webContents.insertCSS(`
@@ -772,27 +892,39 @@ async function applyDarkThemeStyle() {
           background-color: #000000 !important;
         }
       `);
-    } catch (err) {
-      console.error("Deep black CSS injection failed:", err);
-    }
+    } catch (err) {}
+  }
+}
+
+async function applyAdBlockerCosmetics() {
+  if (!mainWindow) return;
+
+  if (adblockCosmeticCssKey) {
+    try {
+      await mainWindow.webContents.removeInsertedCSS(adblockCosmeticCssKey);
+    } catch (e) {}
+    adblockCosmeticCssKey = null;
+  }
+
+  if (adBlockerEnabled) {
+    adblockCosmeticCssKey = await adblocker.injectCosmeticFilters(mainWindow.webContents, true);
   }
 }
 
 // ============================================================
-// SEARCH QUERY PARSING
+// SEARCH QUERY PARSER
 // ============================================================
 
 function parseSearchQuery(query) {
   let url = query.trim();
   if (!url) return '';
 
-  // Check for search engine shortcuts
   if (url.startsWith('!')) {
     const spaceIndex = url.indexOf(' ');
     if (spaceIndex !== -1) {
       const shortcut = url.substring(0, spaceIndex).toLowerCase();
       const searchTerms = url.substring(spaceIndex + 1).trim();
-      
+
       if (shortcut === '!d' || shortcut === '!ddg') {
         return 'https://duckduckgo.com/?q=' + encodeURIComponent(searchTerms);
       }
@@ -811,11 +943,10 @@ function parseSearchQuery(query) {
     }
   }
 
-  // Check if it's a URL or search query
   if (!/^https?:\/\//i.test(url)) {
     const isDomain = /^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/i.test(url);
     const isLocalhost = /^(localhost|127\.0\.0\.1)(:[0-9]{1,5})?(\/.*)?$/i.test(url);
-    
+
     if (isDomain) {
       url = 'https://' + url;
     } else if (isLocalhost) {
@@ -832,7 +963,7 @@ function parseSearchQuery(query) {
 // IPC COMMUNICATION
 // ============================================================
 
-// Search
+// Search Navigation
 ipcMain.on('perform-navigation', (event, query) => {
   const url = parseSearchQuery(query);
   if (url && mainWindow) {
@@ -845,13 +976,38 @@ ipcMain.on('cancel-search', () => {
   hideSearchOverlay();
 });
 
+// Exit Modal
+ipcMain.on('confirm-exit', () => {
+  app.quit();
+});
+
+ipcMain.on('cancel-exit-modal', () => {
+  hideExitModal();
+});
+
 // Extensions
 ipcMain.handle('list-extensions', () => {
   return getInstalledExtensions();
 });
 
 ipcMain.handle('install-extension', async () => {
-  const result = await installExtension();
+  const result = await installExtensionFolder();
+  if (extensionsWindow) {
+    extensionsWindow.webContents.send('extensions-updated', getInstalledExtensions());
+  }
+  return result;
+});
+
+ipcMain.handle('install-extension-package', async () => {
+  const result = await installExtensionFromPackage();
+  if (extensionsWindow) {
+    extensionsWindow.webContents.send('extensions-updated', getInstalledExtensions());
+  }
+  return result;
+});
+
+ipcMain.handle('install-extension-webstore', async (event, urlOrId) => {
+  const result = await installExtensionFromWebStore(urlOrId);
   if (extensionsWindow) {
     extensionsWindow.webContents.send('extensions-updated', getInstalledExtensions());
   }
@@ -872,22 +1028,23 @@ ipcMain.on('cancel-extensions', () => {
 
 // Dark Mode
 ipcMain.handle('toggle-dark-mode', async () => {
-  await toggleDarkMode();
-  return darkModeEnabled;
+  return await toggleDarkMode();
 });
 
 ipcMain.handle('get-dark-mode-status', () => {
   return darkModeEnabled;
 });
 
-// Settings Management
+// Settings
 ipcMain.handle('get-settings', () => {
   return {
     adBlockerEnabled,
     darkModeEnabled,
     saveHistoryEnabled,
+    mouseGesturesEnabled,
     vpnEnabled,
-    darkThemeStyle
+    darkThemeStyle,
+    blockedCount: adblocker.getBlockedCount()
   };
 });
 
@@ -895,12 +1052,21 @@ ipcMain.handle('save-setting', async (event, data) => {
   const { key, value } = data || {};
   if (key === 'adBlockerEnabled') {
     adBlockerEnabled = value;
+    await applyAdBlockerCosmetics();
+    if (mainWindow) {
+      mainWindow.webContents.send('settings-changed', { adBlockerEnabled });
+    }
   } else if (key === 'darkModeEnabled') {
     if (darkModeEnabled !== value) {
       await toggleDarkMode();
     }
   } else if (key === 'saveHistoryEnabled') {
     saveHistoryEnabled = value;
+  } else if (key === 'mouseGesturesEnabled') {
+    mouseGesturesEnabled = value;
+    if (mainWindow) {
+      mainWindow.webContents.send('settings-changed', { mouseGesturesEnabled });
+    }
   } else if (key === 'vpnEnabled') {
     if (vpnEnabled !== value) {
       vpnEnabled = value;
@@ -1001,6 +1167,7 @@ ipcMain.on('retry-download', (event, id) => {
   downloadsModule.retryDownload(mainWindow, id);
 });
 
+// Global Trigger Actions
 ipcMain.on('trigger-action', (event, action) => {
   if (!mainWindow) return;
   if (action === 'search') showSearchOverlay();
@@ -1008,6 +1175,13 @@ ipcMain.on('trigger-action', (event, action) => {
   else if (action === 'extensions') showExtensionsOverlay();
   else if (action === 'settings') showSettingsOverlay();
   else if (action === 'reload') mainWindow.webContents.reload();
+  else if (action === 'home') mainWindow.loadFile(path.join(__dirname, 'homepage.html'));
+  else if (action === 'toggle-adblock') {
+    adBlockerEnabled = !adBlockerEnabled;
+    saveUserData();
+    applyAdBlockerCosmetics();
+    mainWindow.webContents.send('settings-changed', { adBlockerEnabled });
+  }
   else if (action === 'zoom-in') {
     const level = mainWindow.webContents.getZoomLevel();
     mainWindow.webContents.setZoomLevel(Math.min(level + 0.5, 5));
@@ -1031,57 +1205,47 @@ ipcMain.on('cancel-popup', () => {
 });
 
 // ============================================================
-// APP STARTUP
+// APP LIFECYCLE
 // ============================================================
 
 app.whenReady().then(() => {
   loadUserData();
+  nativeTheme.themeSource = darkModeEnabled ? 'dark' : 'light';
 
-  // Ensure transparency is enabled in Windows Registry
+  // Windows transparency registry hint
   if (process.platform === 'win32') {
     const { exec } = require('child_process');
-    exec('powershell -Command "Set-ItemProperty -Path \'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize\' -Name \'EnableTransparency\' -Value 1"', (err) => {
-      if (err) console.error("Failed to enable Windows transparency registry key:", err);
-    });
+    exec('powershell -Command "Set-ItemProperty -Path \'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize\' -Name \'EnableTransparency\' -Value 1"', () => {});
   }
 
-  // Setup Ad Blocker WebRequest interceptor
-  session.defaultSession.webRequest.onBeforeRequest((details, callback) => {
-    if (!adBlockerEnabled) {
-      callback({ cancel: false });
-      return;
-    }
-    const url = details.url;
-    const isAd = adDomains.some(domain => url.includes(domain));
-    if (isAd) {
-      callback({ cancel: true });
-    } else {
-      callback({ cancel: false });
+  // Setup Ad Blocker WebRequest filtering (Enabled by default)
+  adblocker.setupAdBlocker(session.defaultSession, () => adBlockerEnabled, (count) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('adblock-count-updated', count);
     }
   });
 
-
   // Setup download tracking
   downloadsModule.setupDownloadTracking(session.defaultSession, (downloads) => {
-    // Send updates to downloads manager if it's showing
     if (mainWindow) {
       mainWindow.webContents.send('downloads-updated', downloads);
     }
   });
 
-  // Load saved extensions
+  // Load saved unpacked & crx extensions
   loadSavedExtensions();
 
   if (vpnEnabled) {
-    vpnModule.startVPN().catch(err => console.error("VPN Startup failed:", err));
+    vpnModule.startVPN().catch(err => console.error("VPN Startup error:", err));
   }
 
-  // Create all windows
+  // Create windows
   createMainWindow();
   createSearchWindow();
   createExtensionsWindow();
   createDownloadPopupWindow();
   createSettingsWindow();
+  createExitModalWindow();
 
   app.on('activate', () => {
     if (BrowserWindow.getAll().length === 0) {
@@ -1090,6 +1254,7 @@ app.whenReady().then(() => {
       createExtensionsWindow();
       createDownloadPopupWindow();
       createSettingsWindow();
+      createExitModalWindow();
     }
   });
 });

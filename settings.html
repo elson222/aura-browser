@@ -3,31 +3,63 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Settings</title>
+  <title>Settings — AuraBrowser</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="settings.css">
 </head>
 <body>
   <div class="settings-wrapper" id="settingsContainer">
+    <!-- Header -->
     <div class="settings-header">
       <div class="header-info">
-        <h2>Settings</h2>
-        <span class="subtitle">Customize your Aura experience</span>
+        <div class="header-title-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          <h2>Browser Settings</h2>
+        </div>
+        <span class="subtitle">Customize security, performance & interaction preferences</span>
       </div>
-      <button class="close-btn" id="closeBtn" title="Close Settings">×</button>
+      <button class="close-btn" id="closeBtn" title="Close (Esc)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
     </div>
 
+    <!-- Settings List -->
     <div class="settings-list">
-      <!-- Setting Option: Ad Blocker -->
+      <!-- Setting Option: Built-in Free Ad Blocker -->
       <div class="setting-row">
         <div class="setting-info">
-          <span class="setting-title">🛡️ Ad Blocker</span>
-          <span class="setting-desc">Block advertising domains and tracking scripts</span>
+          <div class="setting-title-wrap">
+            <svg class="setting-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span class="setting-title">Built-in Ad Blocker</span>
+            <span class="badge-default">On by default</span>
+          </div>
+          <span class="setting-desc">Block advertising domains, tracking beacons, and popups automatically</span>
         </div>
         <label class="switch">
-          <input type="checkbox" id="adblock-toggle">
+          <input type="checkbox" id="adblock-toggle" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <!-- Setting Option: Mouse Gestures -->
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-title-wrap">
+            <svg class="setting-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/><polyline points="6 9 12 15 18 9"/></svg>
+            <span class="setting-title">Mouse Gestures</span>
+          </div>
+          <span class="setting-desc">Right-click & drag for instant back, forward, reload, and navigation</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="gestures-toggle" checked>
           <span class="slider"></span>
         </label>
       </div>
@@ -35,8 +67,11 @@
       <!-- Setting Option: Dark Mode -->
       <div class="setting-row">
         <div class="setting-info">
-          <span class="setting-title">🕶️ Aura Dark Mode</span>
-          <span class="setting-desc">Force websites to use dark theme automatically</span>
+          <div class="setting-title-wrap">
+            <svg class="setting-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <span class="setting-title">Aura Dark Theme</span>
+          </div>
+          <span class="setting-desc">Force websites and browser interfaces into dark mode</span>
         </div>
         <label class="switch">
           <input type="checkbox" id="darkmode-toggle">
@@ -47,18 +82,25 @@
       <!-- Setting Option: Dark Style -->
       <div class="setting-row" id="dark-style-row">
         <div class="setting-info">
-          <span class="setting-title">🎨 Dark Mode Style</span>
-          <span class="setting-desc">Choose between YouTube-style grey or pure OLED black</span>
+          <div class="setting-title-wrap">
+            <svg class="setting-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2v20M12 12 2.1 12"/></svg>
+            <span class="setting-title">Dark Theme Style</span>
+          </div>
+          <span class="setting-desc">Select between modern Aura Grey or OLED Pure Black</span>
         </div>
         <select class="settings-select" id="dark-style-select">
           <option value="grey">Aura Grey (Recommended)</option>
-          <option value="black">Deep Black</option>
+          <option value="black">Deep OLED Black</option>
         </select>
       </div>
+
       <!-- Setting Option: Free VPN -->
       <div class="setting-row">
         <div class="setting-info">
-          <span class="setting-title">🌐 Free VPN Shield</span>
+          <div class="setting-title-wrap">
+            <svg class="setting-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <span class="setting-title">Free Privacy VPN Shield</span>
+          </div>
           <span class="setting-desc">Anonymize web requests dynamically using SOCKS5 proxies</span>
         </div>
         <label class="switch">
@@ -70,8 +112,11 @@
       <!-- Setting Option: Save History -->
       <div class="setting-row">
         <div class="setting-info">
-          <span class="setting-title">🕒 Save Browsing History</span>
-          <span class="setting-desc">Keep record of visited pages for search suggestions</span>
+          <div class="setting-title-wrap">
+            <svg class="setting-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span class="setting-title">Save Browsing History</span>
+          </div>
+          <span class="setting-desc">Keep a local record of visited pages for omnibox suggestions</span>
         </div>
         <label class="switch">
           <input type="checkbox" id="history-toggle">
@@ -80,9 +125,11 @@
       </div>
     </div>
 
+    <!-- Actions -->
     <div class="settings-actions">
       <button class="action-btn danger" id="clearDataBtn">
-        Clear Browsing Data
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        <span>Clear Browsing Data</span>
       </button>
       <div class="action-status" id="actionStatus"></div>
     </div>

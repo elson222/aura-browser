@@ -3,26 +3,38 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Search Navigation</title>
+  <title>Omnibox Search — AuraBrowser</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="search.css">
 </head>
 <body>
   <div class="search-wrapper">
     <div class="search-container">
-      <div class="search-icon">🔍</div>
+      <div class="search-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </div>
       <input 
         type="text" 
         id="search-input" 
-        placeholder="Search Google, use !d, !yt, !wiki, or type a URL..." 
+        placeholder="Search Google, enter URL, calculation (e.g. 50*12), or !d, !yt, !gh..." 
         autocomplete="off" 
         spellcheck="false" 
         autofocus 
       />
-      <div class="enter-badge">Enter ↵</div>
+      <div class="enter-badge">
+        <span>Enter</span>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 10 4 15 9 20"/>
+          <path d="M20 4v7a4 4 0 0 1-4 4H4"/>
+        </svg>
+      </div>
     </div>
+
     <div class="suggestions-container" id="suggestions-list">
       <!-- Suggestions dynamically rendered here -->
     </div>

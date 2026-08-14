@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exit Confirmation — AuraBrowser</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: transparent;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.18s ease-out;
+    }
+
+    .modal-card {
+      width: 440px;
+      background: rgba(14, 14, 16, 0.94);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      padding: 32px 28px 24px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      animation: scaleUp 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .icon-wrap {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 18px;
+      border-radius: 16px;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ef4444;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 8px;
+      letter-spacing: -0.3px;
+    }
+
+    p.subtitle {
+      font-size: 14px;
+      color: #8e8e93;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+      outline: none;
+    }
+
+    .btn-cancel {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #e5e5e7;
+    }
+
+    .btn-cancel:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-quit {
+      background: #ef4444;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+    }
+
+    .btn-quit:hover {
+      background: #dc2626;
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+    }
+
+    kbd {
+      display: inline-block;
+      padding: 2px 6px;
+      font-size: 11px;
+      font-family: inherit;
+      font-weight: 600;
+      color: #a1a1aa;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 4px;
+    }
+
+    .footer-hint {
+      font-size: 12px;
+      color: #71717a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes scaleUp {
+      from { opacity: 0; transform: scale(0.94); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal-card">
+      <div class="icon-wrap">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+          <line x1="12" y1="2" x2="12" y2="12"/>
+        </svg>
+      </div>
+
+      <h2>Close Aura Browser?</h2>
+      <p class="subtitle">Are you sure you want to exit? Your current tabs and active session will be saved.</p>
+
+      <div class="action-buttons">
+        <button class="btn btn-cancel" id="btnCancel">
+          <span>Cancel</span>
+          <kbd>Space</kbd>
+        </button>
+        <button class="btn btn-quit" id="btnQuit">
+          <span>Exit Browser</span>
+          <kbd>Esc / ↵</kbd>
+        </button>
+      </div>
+
+      <div class="footer-hint">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="16" x2="12" y2="12"/>
+          <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+        <span>Fast double-press <kbd>Esc</kbd> anytime to exit instantly.</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const btnCancel = document.getElementById('btnCancel');
+    const btnQuit = document.getElementById('btnQuit');
+    const modalBackdrop = document.getElementById('modalBackdrop');
+
+    function cancel() {
+      window.electronAPI.cancelExitModal();
+    }
+
+    function confirmQuit() {
+      window.electronAPI.confirmExit();
+    }
+
+    btnCancel.addEventListener('click', cancel);
+    btnQuit.addEventListener('click', confirmQuit);
+
+    modalBackdrop.addEventListener('click', (e) => {
+      if (e.target === modalBackdrop) {
+        cancel();
+      }
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' || e.key === 'Enter') {
+        e.preventDefault();
+        confirmQuit();
+      } else if (e.key === ' ' || e.key === 'Spacebar') {
+        e.preventDefault();
+        cancel();
+      }
+    });
+  </script>
+</body>
+</html>

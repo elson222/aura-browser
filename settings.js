@@ -1,12 +1,11 @@
 /* ============================================================
    AuraBrowser — Settings Overlay Logic
-   Manages user preferences and data clearance actions
+   Manages user preferences, mouse gestures, ad blocker, and data clearance
    ============================================================ */
 
 (() => {
   'use strict';
 
-  // ── DOM References ──
   const settingsContainer = document.getElementById('settingsContainer');
   const closeBtn = document.getElementById('closeBtn');
   const clearDataBtn = document.getElementById('clearDataBtn');
@@ -14,6 +13,7 @@
 
   const toggles = {
     adBlockerEnabled: document.getElementById('adblock-toggle'),
+    mouseGesturesEnabled: document.getElementById('gestures-toggle'),
     darkModeEnabled: document.getElementById('darkmode-toggle'),
     saveHistoryEnabled: document.getElementById('history-toggle'),
     vpnEnabled: document.getElementById('vpn-toggle')
@@ -23,14 +23,14 @@
   const darkStyleRow = document.getElementById('dark-style-row');
 
   function updateStyleRowVisibility() {
-    if (toggles.darkModeEnabled.checked) {
+    if (toggles.darkModeEnabled && toggles.darkModeEnabled.checked) {
       darkStyleRow.style.display = 'flex';
     } else {
       darkStyleRow.style.display = 'none';
     }
   }
 
-  // ── Preload API: Get Settings on load ──
+  // Preload API: Get Settings on load
   if (window.electronAPI) {
     window.electronAPI.getSettings().then(settings => {
       if (settings) {
@@ -39,7 +39,7 @@
             toggles[key].checked = settings[key];
           }
         });
-        if (settings.darkThemeStyle) {
+        if (settings.darkThemeStyle && darkStyleSelect) {
           darkStyleSelect.value = settings.darkThemeStyle;
         }
         updateStyleRowVisibility();
@@ -49,17 +49,16 @@
     });
   }
 
-  // ── Toggle Event Listeners ──
+  // Toggle Event Listeners
   Object.keys(toggles).forEach(key => {
     const el = toggles[key];
     if (el) {
       el.addEventListener('change', async () => {
         if (window.electronAPI) {
           try {
-            await window.electronAPI.saveSetting({ key, value: el.checked });
+            await window.electronAPI.saveSetting(key, el.checked);
           } catch (err) {
             console.error(`Failed to save setting ${key}:`, err);
-            // Revert state on failure
             el.checked = !el.checked;
           }
         }
@@ -67,24 +66,27 @@
     }
   });
 
-  // Bind change event for dark mode style select
-  darkStyleSelect.addEventListener('change', async () => {
-    if (window.electronAPI) {
-      try {
-        await window.electronAPI.saveSetting({ key: 'darkThemeStyle', value: darkStyleSelect.value });
-      } catch (err) {
-        console.error('Failed to save darkThemeStyle:', err);
+  if (darkStyleSelect) {
+    darkStyleSelect.addEventListener('change', async () => {
+      if (window.electronAPI) {
+        try {
+          await window.electronAPI.saveSetting('darkThemeStyle', darkStyleSelect.value);
+        } catch (err) {
+          console.error('Failed to save darkThemeStyle:', err);
+        }
       }
-    }
-  });
+    });
+  }
 
-  toggles.darkModeEnabled.addEventListener('change', updateStyleRowVisibility);
+  if (toggles.darkModeEnabled) {
+    toggles.darkModeEnabled.addEventListener('change', updateStyleRowVisibility);
+  }
 
-  // ── Action: Clear Browsing Data ──
+  // Clear Browsing Data
   clearDataBtn.addEventListener('click', async () => {
     if (window.electronAPI) {
       clearDataBtn.disabled = true;
-      clearDataBtn.textContent = 'Clearing...';
+      clearDataBtn.querySelector('span').textContent = 'Clearing...';
       try {
         await window.electronAPI.clearBrowsingData();
         showStatus('Browsing data cleared successfully!');
@@ -93,37 +95,34 @@
         showStatus('Failed to clear data.', true);
       } finally {
         clearDataBtn.disabled = false;
-        clearDataBtn.textContent = 'Clear Browsing Data';
+        clearDataBtn.querySelector('span').textContent = 'Clear Browsing Data';
       }
     }
   });
 
-  // ── Close Overlay ──
   function closeSettings() {
     settingsContainer.style.animation = 'none';
     settingsContainer.offsetHeight; // force reflow
-    settingsContainer.style.animation = 'slideDown 0.2s cubic-bezier(0.4, 0, 1, 1) forwards';
+    settingsContainer.style.animation = 'slideDown 0.18s cubic-bezier(0.4, 0, 1, 1) forwards';
     setTimeout(() => {
       if (window.electronAPI && window.electronAPI.cancelSettings) {
         window.electronAPI.cancelSettings();
       }
-    }, 180);
+    }, 160);
   }
 
   closeBtn.addEventListener('click', closeSettings);
 
-  // Close with Escape key
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeSettings();
     }
   });
 
-  // Helper to display actions status text
   let statusTimeout;
   function showStatus(text, isError = false) {
     actionStatus.textContent = text;
-    actionStatus.style.color = isError ? '#f25454' : '#00f5d4';
+    actionStatus.style.color = isError ? '#f87171' : '#34d399';
     actionStatus.classList.add('show');
 
     clearTimeout(statusTimeout);
