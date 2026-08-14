@@ -10,157 +10,203 @@
   <link rel="stylesheet" href="settings.css">
 </head>
 <body>
-  <div class="settings-card">
-    <!-- Header -->
-    <div class="settings-header">
-      <div class="header-left">
-        <div class="title-wrap">
-          <svg class="header-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <div class="zen-settings-container">
+    <!-- Left Navigation Sidebar (Zen Browser Style) -->
+    <div class="zen-settings-sidebar">
+      <div class="sidebar-header">
+        <div class="logo-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"/>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
           </svg>
-          <h2>Browser Settings</h2>
+          <h2>Settings</h2>
         </div>
-        <span class="subtitle">Customize appearance, shields, and report browser feedback</span>
       </div>
-      <button class="close-btn" id="closeBtn" title="Close (Esc)">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"/>
-          <line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-      </button>
+
+      <div class="nav-tabs">
+        <button class="nav-tab active" data-tab="appearance">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2v20M12 12 2.1 12"/></svg>
+          <span>Appearance</span>
+        </button>
+
+        <button class="nav-tab" data-tab="privacy">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>Shields & Privacy</span>
+        </button>
+
+        <button class="nav-tab" data-tab="features">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="3" rx="2"/><rect width="8" height="6" x="12" y="9" rx="1"/></svg>
+          <span>Superpowers</span>
+        </button>
+
+        <button class="nav-tab" data-tab="feedback">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span>Feedback & Support</span>
+        </button>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="version-badge">Aura Browser v2.0.0</div>
+      </div>
     </div>
 
-    <!-- Settings List -->
-    <div class="settings-list">
-      <!-- Setting Option: Color Theme Mode -->
-      <div class="setting-row">
-        <div class="setting-info">
-          <div class="setting-title-wrap">
-            <svg class="setting-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2v20M12 12 2.1 12"/></svg>
-            <span class="setting-title">Appearance Theme</span>
-          </div>
-          <span class="setting-desc">Choose deep black, true white, or sync with Windows system</span>
-        </div>
-        <select class="settings-select" id="theme-mode-select">
-          <option value="dark">True Deep Black (AMOLED)</option>
-          <option value="light">Pure White (Light Mode)</option>
-          <option value="system">System (Auto Sync)</option>
-        </select>
+    <!-- Right Content Area -->
+    <div class="zen-settings-content">
+      <div class="content-header">
+        <h3 id="sectionTitle">Appearance</h3>
+        <button class="close-btn" id="closeBtn" title="Close (Esc)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
       </div>
 
-      <!-- Setting Option: Built-in Free Ad Blocker -->
-      <div class="setting-row">
-        <div class="setting-info">
-          <div class="setting-title-wrap">
-            <svg class="setting-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            <span class="setting-title">Built-in Ad Blocker</span>
-            <span class="badge-default">On by default</span>
-          </div>
-          <span class="setting-desc">Block advertising domains, tracking beacons, and popups automatically</span>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="adblock-toggle" checked>
-          <span class="slider"></span>
-        </label>
-      </div>
+      <!-- Tab: Appearance -->
+      <div class="tab-pane active" id="tab-appearance">
+        <div class="setting-group">
+          <div class="group-title">Theme & Styling</div>
 
-      <!-- Setting Option: Automatic Picture-in-Picture -->
-      <div class="setting-row">
-        <div class="setting-info">
-          <div class="setting-title-wrap">
-            <svg class="setting-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="3" rx="2"/><rect width="8" height="6" x="12" y="9" rx="1"/></svg>
-            <span class="setting-title">Automatic Picture-in-Picture</span>
-            <span class="badge-default">Auto</span>
-          </div>
-          <span class="setting-desc">Automatically pop out playing videos when scrolled out of view</span>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="autopip-toggle" checked>
-          <span class="slider"></span>
-        </label>
-      </div>
-
-      <!-- Setting Option: Mouse Gestures -->
-      <div class="setting-row">
-        <div class="setting-info">
-          <div class="setting-title-wrap">
-            <svg class="setting-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/><polyline points="6 9 12 15 18 9"/></svg>
-            <span class="setting-title">Mouse Gestures</span>
-          </div>
-          <span class="setting-desc">Right-click & drag for instant back, forward, reload, and navigation</span>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="gestures-toggle" checked>
-          <span class="slider"></span>
-        </label>
-      </div>
-
-      <!-- Setting Option: Free VPN -->
-      <div class="setting-row">
-        <div class="setting-info">
-          <div class="setting-title-wrap">
-            <svg class="setting-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-            <span class="setting-title">Free Privacy VPN Shield</span>
-          </div>
-          <span class="setting-desc">Anonymize web requests dynamically using SOCKS5 proxies</span>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="vpn-toggle">
-          <span class="slider"></span>
-        </label>
-      </div>
-
-      <!-- Setting Option: Save History -->
-      <div class="setting-row">
-        <div class="setting-info">
-          <div class="setting-title-wrap">
-            <svg class="setting-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span class="setting-title">Save Browsing History</span>
-          </div>
-          <span class="setting-desc">Keep a local record of visited pages for omnibox suggestions</span>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="history-toggle">
-          <span class="slider"></span>
-        </label>
-      </div>
-
-      <!-- Section: User Feedback & Issue Reporter -->
-      <div class="feedback-section">
-        <div class="feedback-title">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          <span>Report an Issue or Send Feedback</span>
-        </div>
-        <div class="feedback-form">
-          <div class="feedback-row">
-            <select class="settings-select" id="feedbackCategory" style="width: 100%;">
-              <option value="bug">Bug Report (Something broke)</option>
-              <option value="feature">Feature Request (Idea for Aura)</option>
-              <option value="adblock">Ad Blocker Issue</option>
-              <option value="performance">Speed & Performance</option>
-              <option value="general">General Feedback</option>
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="setting-title">Appearance Theme</span>
+              <span class="setting-desc">Choose deep black, pure white, or sync with Windows system</span>
+            </div>
+            <select class="settings-select" id="theme-mode-select">
+              <option value="dark">True Deep Black (AMOLED)</option>
+              <option value="light">Pure White (Light Mode)</option>
+              <option value="system">System (Auto Sync)</option>
             </select>
           </div>
-          <textarea id="feedbackText" class="feedback-textarea" placeholder="Describe the issue you're facing or what you'd love to see improved..."></textarea>
-          <div class="feedback-footer">
-            <input type="email" id="feedbackEmail" class="feedback-email" placeholder="Your email (optional)" />
-            <button id="sendFeedbackBtn" class="btn-primary">Submit Feedback</button>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="setting-title">Force Dark Mode on All Websites</span>
+              <span class="setting-desc">Invert and darken bright website backgrounds (Default: Off)</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="darkmode-toggle">
+              <span class="slider"></span>
+            </label>
           </div>
-          <div id="feedbackStatus" class="feedback-status"></div>
         </div>
       </div>
 
-      <!-- Danger Zone / Data Management -->
-      <div class="setting-row danger-zone">
-        <div class="setting-info">
-          <div class="setting-title-wrap">
-            <svg class="setting-icon danger" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            <span class="setting-title">Clear Browsing Data</span>
+      <!-- Tab: Shields & Privacy -->
+      <div class="tab-pane" id="tab-privacy">
+        <div class="setting-group">
+          <div class="group-title">Shields & Security</div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="title-with-badge">
+                <span class="setting-title">Built-in Ad & Tracker Blocker</span>
+                <span class="badge-active">On by default</span>
+              </div>
+              <span class="setting-desc">Blocks ads, tracking scripts, and popups across all websites</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="adblock-toggle" checked>
+              <span class="slider"></span>
+            </label>
           </div>
-          <span class="setting-desc">Purge all cache, local storage, session cookies, and history records</span>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="setting-title">Free Privacy VPN & DNS Tunnel</span>
+              <span class="setting-desc">Encrypted Cloudflare DoH & proxy routing for private browsing</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="vpn-toggle">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="setting-title">Save Browsing History</span>
+              <span class="setting-desc">Record visited pages locally for omnibox search suggestions</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="history-toggle" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
         </div>
-        <button class="btn-danger" id="clearDataBtn">Clear All</button>
+
+        <div class="setting-group danger-group">
+          <div class="group-title">Data Management</div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="setting-title">Clear Browsing Data</span>
+              <span class="setting-desc">Purge all cache, local storage, history records, and cookies</span>
+            </div>
+            <button class="btn-danger" id="clearDataBtn">Clear All</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Superpowers -->
+      <div class="tab-pane" id="tab-features">
+        <div class="setting-group">
+          <div class="group-title">Media & Navigation</div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="title-with-badge">
+                <span class="setting-title">Automatic Picture-in-Picture</span>
+                <span class="badge-active">Auto</span>
+              </div>
+              <span class="setting-desc">Automatically floats playing videos when scrolled out of view</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="autopip-toggle" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="setting-title">Mouse Gestures</span>
+              <span class="setting-desc">Right-click & drag for instant back, forward, reload, and navigation</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="gestures-toggle" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Feedback & Support -->
+      <div class="tab-pane" id="tab-feedback">
+        <div class="setting-group">
+          <div class="group-title">Send Feedback or Report an Issue</div>
+          <div class="feedback-form">
+            <div class="feedback-field">
+              <label>Feedback Category</label>
+              <select class="settings-select" id="feedbackCategory" style="width: 100%;">
+                <option value="bug">Bug Report (Something broke)</option>
+                <option value="feature">Feature Request (Idea for Aura)</option>
+                <option value="adblock">Ad Blocker Issue</option>
+                <option value="performance">Speed & Performance</option>
+                <option value="general">General Feedback</option>
+              </select>
+            </div>
+            <div class="feedback-field">
+              <label>Description</label>
+              <textarea id="feedbackText" class="feedback-textarea" placeholder="Describe the issue or feature you'd love to see in Aura Browser..."></textarea>
+            </div>
+            <div class="feedback-field">
+              <label>Your Email (Optional)</label>
+              <input type="email" id="feedbackEmail" class="feedback-email" placeholder="name@example.com" />
+            </div>
+            <div class="feedback-footer">
+              <button id="sendFeedbackBtn" class="btn-primary">Submit Feedback</button>
+              <span id="feedbackStatus" class="feedback-status"></span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

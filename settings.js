@@ -1,129 +1,152 @@
+// Settings UI Logic with Multi-Tab Switching (Zen Style)
+
 document.addEventListener('DOMContentLoaded', async () => {
   const closeBtn = document.getElementById('closeBtn');
-  const clearDataBtn = document.getElementById('clearDataBtn');
+  const sectionTitle = document.getElementById('sectionTitle');
+  const navTabs = document.querySelectorAll('.nav-tab');
+  const tabPanes = document.querySelectorAll('.tab-pane');
+
   const themeSelect = document.getElementById('theme-mode-select');
+  const darkmodeToggle = document.getElementById('darkmode-toggle');
+  const adblockToggle = document.getElementById('adblock-toggle');
+  const autopipToggle = document.getElementById('autopip-toggle');
+  const vpnToggle = document.getElementById('vpn-toggle');
+  const gesturesToggle = document.getElementById('gestures-toggle');
+  const historyToggle = document.getElementById('history-toggle');
+  const clearDataBtn = document.getElementById('clearDataBtn');
 
-  // Feedback form elements
-  const feedbackCategory = document.getElementById('feedbackCategory');
-  const feedbackText = document.getElementById('feedbackText');
-  const feedbackEmail = document.getElementById('feedbackEmail');
-  const sendFeedbackBtn = document.getElementById('sendFeedbackBtn');
-  const feedbackStatus = document.getElementById('feedbackStatus');
-
-  const toggles = {
-    adBlockerEnabled: document.getElementById('adblock-toggle'),
-    autoPipEnabled: document.getElementById('autopip-toggle'),
-    mouseGesturesEnabled: document.getElementById('gestures-toggle'),
-    saveHistoryEnabled: document.getElementById('history-toggle'),
-    vpnEnabled: document.getElementById('vpn-toggle')
+  const titles = {
+    appearance: 'Appearance',
+    privacy: 'Shields & Privacy',
+    features: 'Superpowers',
+    feedback: 'Feedback & Support'
   };
 
-  // Load current settings
-  try {
-    const settings = await window.electronAPI.getSettings();
-    if (settings) {
-      Object.keys(toggles).forEach(key => {
-        if (toggles[key] && typeof settings[key] !== 'undefined') {
-          toggles[key].checked = settings[key];
-        }
-      });
+  // Tab switching
+  navTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.getAttribute('data-tab');
+      navTabs.forEach(t => t.classList.remove('active'));
+      tabPanes.forEach(p => p.classList.remove('active'));
 
-      if (settings.themeMode) {
-        themeSelect.value = settings.themeMode;
-      }
-    }
-  } catch (err) {
-    console.error('Failed to load settings:', err);
-  }
-
-  // Theme selection handler
-  themeSelect.addEventListener('change', async (e) => {
-    const theme = e.target.value;
-    try {
-      await window.electronAPI.saveSetting('themeMode', theme);
-      if (theme === 'light') {
-        document.body.setAttribute('data-theme', 'light');
-      } else {
-        document.body.removeAttribute('data-theme');
-      }
-    } catch (err) {
-      console.error('Failed to save theme mode:', err);
-    }
-  });
-
-  // Toggles binding
-  Object.keys(toggles).forEach(key => {
-    const el = toggles[key];
-    if (!el) return;
-
-    el.addEventListener('change', async (e) => {
-      try {
-        await window.electronAPI.saveSetting(key, e.target.checked);
-      } catch (err) {
-        console.error(`Failed to save setting ${key}:`, err);
-        e.target.checked = !e.target.checked;
-      }
+      tab.classList.add('active');
+      document.getElementById('tab-' + target)?.classList.add('active');
+      sectionTitle.textContent = titles[target] || 'Settings';
     });
   });
 
-  // Feedback Submission
-  sendFeedbackBtn.addEventListener('click', async () => {
-    const message = feedbackText.value.trim();
-    if (!message) {
-      feedbackStatus.textContent = 'Please enter your feedback or issue description.';
-      feedbackStatus.style.color = '#f87171';
-      feedbackStatus.style.display = 'block';
+  // Close handler
+  function closeSettings() {
+    if (window.electronAPI && window.electronAPI.cancelSettings) {
+      window.electronAPI.cancelSettings();
+    }
+  }
+
+  closeBtn.addEventListener('click', closeSettings);
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeSettings();
+    }
+  });
+
+  // Load Settings
+  if (window.electronAPI && window.electronAPI.getSettings) {
+    try {
+      const settings = await window.electronAPI.getSettings();
+      if (settings) {
+        if (themeSelect) themeSelect.value = settings.themeMode || 'dark';
+        if (darkmodeToggle) darkmodeToggle.checked = settings.darkModeEnabled === true;
+        if (adblockToggle) adblockToggle.checked = settings.adBlockerEnabled !== false;
+        if (autopipToggle) autopipToggle.checked = settings.autoPipEnabled !== false;
+        if (vpnToggle) vpnToggle.checked = settings.vpnEnabled === true;
+        if (gesturesToggle) gesturesToggle.checked = settings.mouseGesturesEnabled !== false;
+        if (historyToggle) historyToggle.checked = settings.saveHistoryEnabled !== false;
+      }
+    } catch (err) {}
+  }
+
+  // Save Settings Handlers
+  const save = async (key, value) => {
+    if (window.electronAPI && window.electronAPI.saveSetting) {
+      try {
+        await window.electronAPI.saveSetting(key, value);
+      } catch (err) {}
+    }
+  };
+
+  themeSelect?.addEventListener('change', (e) => {
+    save('themeMode', e.target.value);
+  });
+
+  darkmodeToggle?.addEventListener('change', (e) => {
+    save('darkModeEnabled', e.target.checked);
+  });
+
+  adblockToggle?.addEventListener('change', (e) => {
+    save('adBlockerEnabled', e.target.checked);
+  });
+
+  autopipToggle?.addEventListener('change', (e) => {
+    save('autoPipEnabled', e.target.checked);
+  });
+
+  vpnToggle?.addEventListener('change', async (e) => {
+    if (window.electronAPI && window.electronAPI.toggleVpn) {
+      const active = await window.electronAPI.toggleVpn();
+      vpnToggle.checked = active;
+    }
+  });
+
+  gesturesToggle?.addEventListener('change', (e) => {
+    save('mouseGesturesEnabled', e.target.checked);
+  });
+
+  historyToggle?.addEventListener('change', (e) => {
+    save('saveHistoryEnabled', e.target.checked);
+  });
+
+  clearDataBtn?.addEventListener('click', async () => {
+    if (confirm('Clear all browsing data, history, and cache?')) {
+      if (window.electronAPI && window.electronAPI.clearBrowsingData) {
+        await window.electronAPI.clearBrowsingData();
+        clearDataBtn.textContent = 'Cleared!';
+        setTimeout(() => { clearDataBtn.textContent = 'Clear All'; }, 2000);
+      }
+    }
+  });
+
+  // Feedback Form Handler
+  const sendFeedbackBtn = document.getElementById('sendFeedbackBtn');
+  const feedbackCategory = document.getElementById('feedbackCategory');
+  const feedbackText = document.getElementById('feedbackText');
+  const feedbackEmail = document.getElementById('feedbackEmail');
+  const feedbackStatus = document.getElementById('feedbackStatus');
+
+  sendFeedbackBtn?.addEventListener('click', () => {
+    const text = feedbackText.value.trim();
+    if (!text) {
+      feedbackStatus.textContent = 'Please enter your feedback.';
+      feedbackStatus.style.color = '#ef4444';
       return;
     }
 
-    sendFeedbackBtn.disabled = true;
-    sendFeedbackBtn.textContent = 'Sending...';
-
-    const feedbackData = {
+    const payload = {
       category: feedbackCategory.value,
-      message: message,
+      message: text,
       email: feedbackEmail.value.trim(),
       timestamp: new Date().toISOString()
     };
 
-    try {
-      // Save feedback in user data
-      const existing = JSON.parse(localStorage.getItem('aura_user_feedback') || '[]');
-      existing.push(feedbackData);
-      localStorage.setItem('aura_user_feedback', JSON.stringify(existing));
+    const existing = JSON.parse(localStorage.getItem('aura_feedback') || '[]');
+    existing.push(payload);
+    localStorage.setItem('aura_feedback', JSON.stringify(existing));
 
-      feedbackStatus.textContent = 'Thank you! Your feedback has been recorded.';
-      feedbackStatus.style.color = '#34d399';
-      feedbackStatus.style.display = 'block';
-      feedbackText.value = '';
-      feedbackEmail.value = '';
-    } catch (err) {
-      feedbackStatus.textContent = 'Feedback saved locally.';
-      feedbackStatus.style.color = '#34d399';
-      feedbackStatus.style.display = 'block';
-    } finally {
-      sendFeedbackBtn.disabled = false;
-      sendFeedbackBtn.textContent = 'Submit Feedback';
-      setTimeout(() => {
-        feedbackStatus.style.display = 'none';
-      }, 4000);
-    }
-  });
+    feedbackStatus.textContent = 'Thank you! Feedback saved.';
+    feedbackStatus.style.color = '#34d399';
+    feedbackText.value = '';
+    feedbackEmail.value = '';
 
-  // Clear data button
-  clearDataBtn.addEventListener('click', async () => {
-    if (confirm('Are you sure you want to clear all history, cookies, and cached data?')) {
-      try {
-        await window.electronAPI.clearBrowsingData();
-        alert('All browsing data has been cleared.');
-      } catch (err) {
-        alert('Failed to clear data: ' + err.message);
-      }
-    }
-  });
-
-  // Close overlay
-  closeBtn.addEventListener('click', () => {
-    window.electronAPI.cancelSettings();
+    setTimeout(() => { feedbackStatus.textContent = ''; }, 3500);
   });
 });

@@ -57,13 +57,13 @@ function loadUserData() {
       const content = fs.readFileSync(userDataPath, 'utf8');
       const loaded = JSON.parse(content);
       userData = { ...userData, ...loaded };
-      darkModeEnabled = userData.darkModeEnabled !== false;
+      darkModeEnabled = userData.darkModeEnabled === true;
       adBlockerEnabled = userData.adBlockerEnabled !== false;
       autoPipEnabled = userData.autoPipEnabled !== false;
       saveHistoryEnabled = userData.saveHistoryEnabled !== false;
       mouseGesturesEnabled = userData.mouseGesturesEnabled !== false;
       vpnEnabled = userData.vpnEnabled === true;
-      darkThemeStyle = userData.darkThemeStyle || 'grey';
+      darkThemeStyle = userData.darkThemeStyle || 'black';
     } else {
       saveUserData();
     }
@@ -91,7 +91,7 @@ function saveUserData() {
 try {
   if (fs.existsSync(userDataPath)) {
     const loaded = JSON.parse(fs.readFileSync(userDataPath, 'utf8'));
-    darkModeEnabled = loaded.darkModeEnabled !== false;
+    darkModeEnabled = loaded.darkModeEnabled === true;
     adBlockerEnabled = loaded.adBlockerEnabled !== false;
   }
 } catch (e) {}
@@ -791,8 +791,8 @@ function copyDirectory(src, dest) {
 function createSettingsWindow() {
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width, height } = primaryDisplay.workAreaSize;
-  const overlayWidth = 480;
-  const overlayHeight = 520;
+  const overlayWidth = 720;
+  const overlayHeight = 540;
 
   settingsWindow = new BrowserWindow({
     width: overlayWidth,
