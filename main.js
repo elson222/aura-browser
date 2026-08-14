@@ -117,7 +117,8 @@ function createMainWindow() {
     fullscreen: true,
     frame: false,
     transparent: false,
-    backgroundColor: '#0a0a0c',
+    backgroundColor: '#000000',
+    icon: path.join(__dirname, 'assets', 'icon.png'),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
