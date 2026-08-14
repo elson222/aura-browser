@@ -205,10 +205,17 @@ function createMainWindow() {
     const shift = input.shift;
     const alt = input.alt;
 
-    // Control + Escape -> Minimize or Toggle Window Mode
-    if (ctrl && input.key === 'Escape') {
+    // Ctrl+M or Alt+Enter or F11 -> Minimize / Toggle Window Mode
+    if ((ctrl && !shift && key === 'm') || (alt && input.key === 'Enter') || key === 'f11') {
       event.preventDefault();
       handleCtrlEsc();
+      return;
+    }
+
+    // Ctrl+B -> Toggle Zen Side Panel / Dock
+    if (ctrl && !shift && key === 'b') {
+      event.preventDefault();
+      if (mainWindow) mainWindow.webContents.send('toggle-zen-dock');
       return;
     }
 

@@ -7,6 +7,16 @@ function initZenFeatures(ipcRenderer) {
   // 1. Inject Zen Left Dock & Split View Container
   if (document.getElementById('aura-zen-dock')) return;
 
+  // Toggle Tab on left edge
+  const tab = document.createElement('div');
+  tab.id = 'aura-zen-tab';
+  tab.title = 'Zen Side Panel (Ctrl+B)';
+  tab.innerHTML = `
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 18 15 12 9 6"/>
+    </svg>
+  `;
+
   const dock = document.createElement('div');
   dock.id = 'aura-zen-dock';
 
@@ -36,17 +46,14 @@ function initZenFeatures(ipcRenderer) {
 
       <!-- Web Panels (Side Apps) -->
       <div class="zen-section">
-        <div class="zen-btn" id="zen-app-split" title="Toggle Split View (Ctrl+\\)">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
-        </div>
-        <div class="zen-btn" id="zen-app-ai" title="AI Assistant / ChatGPT Panel">
+        <div class="zen-btn" id="zen-app-ai" title="AI Web Assistant">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 0 1 10 10c0 5.5-4.5 10-10 10S2 17.5 2 12 6.5 2 12 2z"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
         </div>
-        <div class="zen-btn" id="zen-app-notes" title="Quick Notes Panel">
+        <div class="zen-btn" id="zen-app-notes" title="Quick Notes Scratchpad">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/></svg>
         </div>
-        <div class="zen-btn" id="zen-app-pip" title="Picture-in-Picture">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="3" rx="2"/><rect width="8" height="6" x="12" y="9" rx="1"/></svg>
+        <div class="zen-btn" id="zen-app-split" title="Omnibox Search (Ctrl+T)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </div>
       </div>
 
@@ -54,8 +61,8 @@ function initZenFeatures(ipcRenderer) {
 
       <!-- Quick Actions -->
       <div class="zen-section">
-        <div class="zen-btn" id="zen-btn-search" title="Search Omnibox (Ctrl+T)">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <div class="zen-btn" id="zen-btn-downloads" title="Downloads Manager (Ctrl+J)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </div>
         <div class="zen-btn" id="zen-btn-settings" title="Settings (Ctrl+,)">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -63,10 +70,6 @@ function initZenFeatures(ipcRenderer) {
       </div>
     </div>
   `;
-
-  // Trigger zone on left edge
-  const trigger = document.createElement('div');
-  trigger.id = 'aura-zen-trigger';
 
   // Floating Web Panel Drawer (for Notes / AI / Web Apps)
   const panelDrawer = document.createElement('div');
@@ -79,49 +82,53 @@ function initZenFeatures(ipcRenderer) {
     <div class="drawer-content" id="drawerContent"></div>
   `;
 
-  // Split View Overlay
-  const splitContainer = document.createElement('div');
-  splitContainer.id = 'aura-split-container';
-  splitContainer.innerHTML = `
-    <div class="split-pane left-pane" id="splitLeftPane"></div>
-    <div class="split-resizer" id="splitResizer"></div>
-    <div class="split-pane right-pane" id="splitRightPane">
-      <div class="split-pane-header">
-        <input type="text" id="splitUrlInput" placeholder="Enter secondary URL (e.g. google.com, youtube.com)..." />
-        <button id="splitCloseBtn">✕</button>
-      </div>
-      <iframe id="splitIframe" src="about:blank"></iframe>
-    </div>
-  `;
-
   // Zen CSS Styles
   const style = document.createElement('style');
   style.textContent = `
-    #aura-zen-trigger {
+    #aura-zen-tab {
       position: fixed !important;
-      top: 0 !important;
+      top: 50% !important;
+      transform: translateY(-50%) !important;
       left: 0 !important;
-      bottom: 0 !important;
-      width: 10px !important;
-      z-index: 2147483646 !important;
-      background: transparent !important;
+      width: 18px !important;
+      height: 48px !important;
+      background: rgba(20, 20, 26, 0.85) !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      border-left: none !important;
+      border-radius: 0 10px 10px 0 !important;
+      z-index: 2147483645 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      color: #8e8e93 !important;
+      cursor: pointer !important;
+      backdrop-filter: blur(12px) !important;
+      transition: all 0.2s ease !important;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    #aura-zen-tab:hover {
+      width: 24px !important;
+      color: #ffffff !important;
+      background: rgba(30, 30, 40, 0.95) !important;
+      border-color: rgba(255, 255, 255, 0.25) !important;
     }
 
     #aura-zen-dock {
       position: fixed !important;
       top: 0 !important;
-      left: -58px !important;
+      left: -60px !important;
       bottom: 0 !important;
       width: 54px !important;
-      background: rgba(12, 12, 16, 0.94) !important;
-      backdrop-filter: blur(24px) saturate(1.4) !important;
-      -webkit-backdrop-filter: blur(24px) saturate(1.4) !important;
-      border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+      background: rgba(12, 12, 16, 0.95) !important;
+      backdrop-filter: blur(28px) saturate(1.4) !important;
+      -webkit-backdrop-filter: blur(28px) saturate(1.4) !important;
+      border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
       z-index: 2147483647 !important;
       transition: left 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
       display: flex !important;
       flex-direction: column !important;
-      box-shadow: 10px 0 35px rgba(0, 0, 0, 0.5) !important;
+      box-shadow: 12px 0 35px rgba(0, 0, 0, 0.6) !important;
       user-select: none !important;
     }
 
@@ -195,11 +202,11 @@ function initZenFeatures(ipcRenderer) {
       left: -360px !important;
       bottom: 0 !important;
       width: 360px !important;
-      background: rgba(14, 14, 18, 0.97) !important;
+      background: rgba(14, 14, 18, 0.98) !important;
       backdrop-filter: blur(28px) !important;
-      border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+      border-right: 1px solid rgba(255, 255, 255, 0.12) !important;
       z-index: 2147483646 !important;
-      box-shadow: 15px 0 40px rgba(0, 0, 0, 0.6) !important;
+      box-shadow: 15px 0 40px rgba(0, 0, 0, 0.7) !important;
       transition: left 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
       display: flex !important;
       flex-direction: column !important;
@@ -238,85 +245,40 @@ function initZenFeatures(ipcRenderer) {
       padding: 16px !important;
       overflow-y: auto !important;
     }
-
-    /* Split View Container */
-    #aura-split-container {
-      position: fixed !important;
-      inset: 0 !important;
-      display: none;
-      z-index: 2147483640 !important;
-      background: #000000 !important;
-    }
-
-    #aura-split-container.active {
-      display: flex !important;
-    }
-
-    .right-pane {
-      width: 50% !important;
-      height: 100% !important;
-      border-left: 2px solid rgba(255, 255, 255, 0.1) !important;
-      display: flex !important;
-      flex-direction: column !important;
-      background: #0a0a0d !important;
-    }
-
-    .split-pane-header {
-      height: 48px !important;
-      background: rgba(14, 14, 18, 0.95) !important;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-      display: flex !important;
-      align-items: center !important;
-      padding: 0 12px !important;
-      gap: 10px !important;
-    }
-
-    #splitUrlInput {
-      flex: 1 !important;
-      height: 32px !important;
-      background: rgba(255, 255, 255, 0.06) !important;
-      border: 1px solid rgba(255, 255, 255, 0.1) !important;
-      border-radius: 6px !important;
-      color: #ffffff !important;
-      padding: 0 12px !important;
-      font-family: inherit !important;
-      font-size: 12px !important;
-      outline: none !important;
-    }
-
-    #splitCloseBtn {
-      background: transparent !important;
-      border: none !important;
-      color: #8e8e93 !important;
-      cursor: pointer !important;
-      font-size: 14px !important;
-      padding: 4px 8px !important;
-    }
-
-    #splitIframe {
-      flex: 1 !important;
-      width: 100% !important;
-      border: none !important;
-    }
   `;
 
   document.head.appendChild(style);
-  document.body.appendChild(trigger);
+  document.body.appendChild(tab);
   document.body.appendChild(dock);
   document.body.appendChild(panelDrawer);
 
-  // Hover triggers
-  trigger.addEventListener('mouseenter', () => {
-    dock.classList.add('visible');
-  });
+  function toggleDock() {
+    const isVis = dock.classList.contains('visible');
+    if (isVis) {
+      dock.classList.remove('visible');
+      panelDrawer.classList.remove('open');
+      tab.style.transform = 'translateY(-50%) rotate(0deg)';
+    } else {
+      dock.classList.add('visible');
+      tab.style.transform = 'translateY(-50%) rotate(180deg)';
+    }
+  }
+
+  tab.addEventListener('click', toggleDock);
 
   dock.addEventListener('mouseleave', () => {
     if (!panelDrawer.classList.contains('open')) {
       dock.classList.remove('visible');
+      tab.style.transform = 'translateY(-50%) rotate(0deg)';
     }
   });
 
-  // Split View Handlers
+  // Listen for global shortcut
+  if (ipcRenderer && ipcRenderer.on) {
+    ipcRenderer.on('toggle-zen-dock', toggleDock);
+  }
+
+  // Split / Omnibox Button
   document.getElementById('zen-app-split').addEventListener('click', () => {
     ipcRenderer.send('trigger-action', 'search');
   });
@@ -348,7 +310,7 @@ function initZenFeatures(ipcRenderer) {
   // AI Assistant Drawer
   const aiBtn = document.getElementById('zen-app-ai');
   aiBtn.addEventListener('click', () => {
-    drawerTitle.textContent = 'AI Web Companion';
+    drawerTitle.textContent = 'AI Web Assistant';
     drawerContent.innerHTML = `
       <div style="display:flex; flex-direction:column; gap:12px; height:100%;">
         <div style="font-size:12px; color:#a1a1aa;">Quick prompt or summarization:</div>
@@ -370,11 +332,12 @@ function initZenFeatures(ipcRenderer) {
   drawerClose.addEventListener('click', () => {
     drawer.classList.remove('open');
     dock.classList.remove('visible');
+    tab.style.transform = 'translateY(-50%) rotate(0deg)';
   });
 
   // Action Buttons
-  document.getElementById('zen-btn-search').addEventListener('click', () => {
-    ipcRenderer.send('trigger-action', 'search');
+  document.getElementById('zen-btn-downloads').addEventListener('click', () => {
+    ipcRenderer.send('trigger-action', 'downloads');
   });
 
   document.getElementById('zen-btn-settings').addEventListener('click', () => {
