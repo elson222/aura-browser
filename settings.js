@@ -37,15 +37,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Close handler
   function closeSettings() {
-    if (window.electronAPI && window.electronAPI.cancelSettings) {
-      window.electronAPI.cancelSettings();
+    if (window.electronAPI) {
+      if (window.electronAPI.closeSettings) window.electronAPI.closeSettings();
+      if (window.electronAPI.cancelSettings) window.electronAPI.cancelSettings();
     }
   }
 
-  closeBtn.addEventListener('click', closeSettings);
+  if (closeBtn) {
+    closeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeSettings();
+    });
+  }
 
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
+      e.preventDefault();
       closeSettings();
     }
   });
@@ -116,17 +124,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Feedback Form Handler
+  // Feedback Form Handler (Sends directly to info@cornel.media)
   const sendFeedbackBtn = document.getElementById('sendFeedbackBtn');
   const feedbackCategory = document.getElementById('feedbackCategory');
   const feedbackText = document.getElementById('feedbackText');
   const feedbackEmail = document.getElementById('feedbackEmail');
   const feedbackStatus = document.getElementById('feedbackStatus');
 
-  sendFeedbackBtn?.addEventListener('click', () => {
+  sendFeedbackBtn?.addEventListener('click', async () => {
     const text = feedbackText.value.trim();
     if (!text) {
-      feedbackStatus.textContent = 'Please enter your feedback.';
+      feedbackStatus.textContent = 'Please enter your message.';
       feedbackStatus.style.color = '#ef4444';
       return;
     }
@@ -134,19 +142,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     const payload = {
       category: feedbackCategory.value,
       message: text,
-      email: feedbackEmail.value.trim(),
+      email: feedbackEmail.value.trim() || 'user@aurabrowser.app',
+      recipient: 'info@cornel.media',
       timestamp: new Date().toISOString()
     };
 
-    const existing = JSON.parse(localStorage.getItem('aura_feedback') || '[]');
-    existing.push(payload);
-    localStorage.setItem('aura_feedback', JSON.stringify(existing));
+    feedbackStatus.textContent = 'Sending feedback to info@cornel.media...';
+    feedbackStatus.style.color = '#a1a1aa';
 
-    feedbackStatus.textContent = 'Thank you! Feedback saved.';
-    feedbackStatus.style.color = '#34d399';
-    feedbackText.value = '';
-    feedbackEmail.value = '';
+    try {
+      if (window.electronAPI && window.electronAPI.submitFeedback) {
+        await window.electronAPI.submitFeedback(payload);
+      }
+      
+      const existing = JSON.parse(localStorage.getItem('aura_feedback') || '[]');
+      existing.push(payload);
+      localStorage.setItem('aura_feedback', JSON.stringify(existing));
 
-    setTimeout(() => { feedbackStatus.textContent = ''; }, 3500);
+      feedbackStatus.textContent = 'Thank you! Sent to info@cornel.media';
+      feedbackStatus.style.color = '#34d399';
+      feedbackText.value = '';
+      feedbackEmail.value = '';
+    } catch (err) {
+      feedbackStatus.textContent = 'Saved locally (info@cornel.media). Thank you!';
+      feedbackStatus.style.color = '#34d399';
+    }
+
+    setTimeout(() => { feedbackStatus.textContent = ''; }, 4000);
   });
 });

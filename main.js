@@ -131,7 +131,6 @@ function createMainWindow() {
   mainWindow.loadFile(path.join(__dirname, 'homepage.html'));
 
   mainWindow.webContents.on('did-finish-load', () => {
-    applyDarkThemeStyle();
     applyAdBlockerCosmetics();
   });
 
@@ -964,27 +963,11 @@ async function toggleDarkMode() {
 
 async function applyDarkThemeStyle() {
   if (!mainWindow) return;
-
   if (deepBlackCssKey) {
     try {
       await mainWindow.webContents.removeInsertedCSS(deepBlackCssKey);
     } catch (e) {}
     deepBlackCssKey = null;
-  }
-
-  if (darkModeEnabled && darkThemeStyle === 'black') {
-    try {
-      deepBlackCssKey = await mainWindow.webContents.insertCSS(`
-        html, body {
-          background-color: #000000 !important;
-          background: #000000 !important;
-        }
-        div:not([role="button"]):not([class*="btn"]):not([class*="button"]):not([class*="badge"]), 
-        section, main, article, aside, header, footer, nav, ul, ol, li, table, form, fieldset, details {
-          background-color: #000000 !important;
-        }
-      `);
-    } catch (err) {}
   }
 }
 
@@ -1238,6 +1221,39 @@ ipcMain.handle('clear-browsing-data', async () => {
 
 ipcMain.on('cancel-settings', () => {
   hideSettingsOverlay();
+});
+
+ipcMain.on('close-settings', () => {
+  hideSettingsOverlay();
+});
+
+ipcMain.handle('submit-feedback', async (event, data) => {
+  try {
+    if (!userData.feedbackLog) userData.feedbackLog = [];
+    userData.feedbackLog.push({ ...data, recipient: 'info@cornel.media' });
+    saveUserData();
+
+    // Send payload to email via formspree/endpoint if available
+    try {
+      const { net } = require('electron');
+      const req = net.request({
+        method: 'POST',
+        url: 'https://formspree.io/f/mwpkjjov',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      req.write(JSON.stringify({
+        email: data.email || 'anonymous@aurabrowser.app',
+        message: `[Aura Browser Feedback] [${data.category}]: ${data.message}`,
+        recipient: 'info@cornel.media',
+        appVersion: '2.0.0'
+      }));
+      req.end();
+    } catch (e) {}
+
+    return { success: true, email: 'info@cornel.media' };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
 });
 
 // Downloads

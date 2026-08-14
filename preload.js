@@ -50,6 +50,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveSetting: (key, value) => ipcRenderer.invoke('save-setting', { key, value }),
   clearBrowsingData: () => ipcRenderer.invoke('clear-browsing-data'),
   cancelSettings: () => ipcRenderer.send('cancel-settings'),
+  closeSettings: () => ipcRenderer.send('close-settings'),
+  submitFeedback: (data) => ipcRenderer.invoke('submit-feedback', data),
   scanMedia: () => ipcRenderer.invoke('scan-media'),
   triggerAction: (action) => ipcRenderer.send('trigger-action', action),
   onSettingsChanged: (callback) => ipcRenderer.on('settings-changed', (_event, data) => callback(data)),
