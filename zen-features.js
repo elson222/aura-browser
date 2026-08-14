@@ -4,7 +4,7 @@
 function initZenFeatures(ipcRenderer) {
   if (window !== window.top) return;
 
-  // 1. Inject Zen Left Dock & Split View Container
+  // Prevent duplicate injection
   if (document.getElementById('aura-zen-dock')) return;
 
   // Toggle Tab on left edge
@@ -57,6 +57,18 @@ function initZenFeatures(ipcRenderer) {
         </div>
       </div>
 
+      <div class="zen-divider"></div>
+
+      <!-- Shields Quick Toggles -->
+      <div class="zen-section">
+        <div class="zen-btn active" id="zen-btn-adblock" title="Ad Blocker Shield (Active)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="zen-btn" id="zen-btn-vpn" title="Free VPN Tunnel">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </div>
+      </div>
+
       <div class="zen-spacer"></div>
 
       <!-- Quick Actions -->
@@ -92,8 +104,8 @@ function initZenFeatures(ipcRenderer) {
       left: 0 !important;
       width: 18px !important;
       height: 48px !important;
-      background: rgba(20, 20, 26, 0.85) !important;
-      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      background: rgba(18, 18, 24, 0.9) !important;
+      border: 1px solid rgba(255, 255, 255, 0.14) !important;
       border-left: none !important;
       border-radius: 0 10px 10px 0 !important;
       z-index: 2147483645 !important;
@@ -102,16 +114,16 @@ function initZenFeatures(ipcRenderer) {
       justify-content: center !important;
       color: #8e8e93 !important;
       cursor: pointer !important;
-      backdrop-filter: blur(12px) !important;
-      transition: all 0.2s ease !important;
-      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.4) !important;
+      backdrop-filter: blur(16px) !important;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      box-shadow: 4px 0 14px rgba(0, 0, 0, 0.5) !important;
     }
 
     #aura-zen-tab:hover {
       width: 24px !important;
       color: #ffffff !important;
-      background: rgba(30, 30, 40, 0.95) !important;
-      border-color: rgba(255, 255, 255, 0.25) !important;
+      background: rgba(28, 28, 36, 0.98) !important;
+      border-color: rgba(255, 255, 255, 0.28) !important;
     }
 
     #aura-zen-dock {
@@ -120,7 +132,7 @@ function initZenFeatures(ipcRenderer) {
       left: -60px !important;
       bottom: 0 !important;
       width: 54px !important;
-      background: rgba(12, 12, 16, 0.95) !important;
+      background: rgba(10, 10, 14, 0.96) !important;
       backdrop-filter: blur(28px) saturate(1.4) !important;
       -webkit-backdrop-filter: blur(28px) saturate(1.4) !important;
       border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -128,7 +140,7 @@ function initZenFeatures(ipcRenderer) {
       transition: left 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
       display: flex !important;
       flex-direction: column !important;
-      box-shadow: 12px 0 35px rgba(0, 0, 0, 0.6) !important;
+      box-shadow: 14px 0 40px rgba(0, 0, 0, 0.65) !important;
       user-select: none !important;
     }
 
@@ -142,13 +154,13 @@ function initZenFeatures(ipcRenderer) {
       flex-direction: column !important;
       align-items: center !important;
       padding: 16px 0 !important;
-      gap: 14px !important;
+      gap: 12px !important;
     }
 
     .zen-brand {
       color: #ffffff !important;
       opacity: 0.9 !important;
-      margin-bottom: 6px !important;
+      margin-bottom: 4px !important;
     }
 
     .zen-section {
@@ -161,7 +173,7 @@ function initZenFeatures(ipcRenderer) {
       width: 24px !important;
       height: 1px !important;
       background: rgba(255, 255, 255, 0.08) !important;
-      margin: 4px 0 !important;
+      margin: 2px 0 !important;
     }
 
     .zen-spacer {
@@ -273,7 +285,7 @@ function initZenFeatures(ipcRenderer) {
     }
   });
 
-  // Listen for global shortcut
+  // Listen for global shortcut (Ctrl+B)
   if (ipcRenderer && ipcRenderer.on) {
     ipcRenderer.on('toggle-zen-dock', toggleDock);
   }
@@ -281,6 +293,32 @@ function initZenFeatures(ipcRenderer) {
   // Split / Omnibox Button
   document.getElementById('zen-app-split').addEventListener('click', () => {
     ipcRenderer.send('trigger-action', 'search');
+  });
+
+  // VPN Quick Toggle
+  const vpnBtn = document.getElementById('zen-btn-vpn');
+  vpnBtn.addEventListener('click', async () => {
+    try {
+      const active = await ipcRenderer.invoke('toggle-vpn');
+      if (active) {
+        vpnBtn.classList.add('active');
+        vpnBtn.querySelector('svg').style.stroke = '#34d399';
+      } else {
+        vpnBtn.classList.remove('active');
+        vpnBtn.querySelector('svg').style.stroke = 'currentColor';
+      }
+    } catch (e) {}
+  });
+
+  // Adblock Quick Toggle
+  const adbBtn = document.getElementById('zen-btn-adblock');
+  adbBtn.addEventListener('click', async () => {
+    try {
+      const settings = await ipcRenderer.invoke('get-settings');
+      const newState = !settings.adBlockerEnabled;
+      await ipcRenderer.invoke('save-setting', { key: 'adBlockerEnabled', value: newState });
+      adbBtn.classList.toggle('active', newState);
+    } catch (e) {}
   });
 
   // Notes Drawer App
