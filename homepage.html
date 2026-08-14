@@ -12,12 +12,11 @@
       --bg-color: #000000;
       --card-bg: rgba(255, 255, 255, 0.03);
       --card-border: rgba(255, 255, 255, 0.08);
-      --card-hover: rgba(255, 255, 255, 0.08);
+      --card-hover: rgba(255, 255, 255, 0.07);
       --text-main: #ffffff;
       --text-sub: #71717a;
-      --input-bg: rgba(20, 20, 26, 0.85);
+      --input-bg: rgba(24, 24, 30, 0.7);
       --input-border: rgba(255, 255, 255, 0.12);
-      --input-focus: #ffffff;
       --tile-bg: rgba(255, 255, 255, 0.03);
       --tile-border: rgba(255, 255, 255, 0.06);
     }
@@ -31,7 +30,6 @@
       --text-sub: #64748b;
       --input-bg: #f8fafc;
       --input-border: rgba(0, 0, 0, 0.12);
-      --input-focus: #000000;
       --tile-bg: #f1f5f9;
       --tile-border: rgba(0, 0, 0, 0.06);
     }
@@ -46,7 +44,6 @@
         --text-sub: #64748b;
         --input-bg: #f8fafc;
         --input-border: rgba(0, 0, 0, 0.12);
-        --input-focus: #000000;
         --tile-bg: #f1f5f9;
         --tile-border: rgba(0, 0, 0, 0.06);
       }
@@ -56,6 +53,8 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     body {
@@ -77,7 +76,7 @@
       position: relative;
       z-index: 10;
       text-align: center;
-      max-width: 680px;
+      max-width: 660px;
       width: 100%;
       display: flex;
       flex-direction: column;
@@ -85,19 +84,19 @@
       animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    /* Brand Header with Custom Logo */
+    /* Brand Header */
     .brand-section {
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-bottom: 32px;
+      margin-bottom: 30px;
     }
 
     .logo-glow-wrapper {
       position: relative;
-      width: 88px;
-      height: 88px;
-      margin-bottom: 16px;
+      width: 80px;
+      height: 80px;
+      margin-bottom: 14px;
     }
 
     .logo-glow-wrapper::after {
@@ -107,21 +106,16 @@
       background: radial-gradient(circle, rgba(147, 51, 234, 0.35) 0%, rgba(6, 182, 212, 0.2) 60%, transparent 80%);
       border-radius: 28px;
       z-index: -1;
-      filter: blur(12px);
-      transition: filter 0.3s ease;
-    }
-
-    .logo-glow-wrapper:hover::after {
-      filter: blur(18px);
+      filter: blur(14px);
     }
 
     .logo-img {
-      width: 88px;
-      height: 88px;
-      border-radius: 24px;
+      width: 80px;
+      height: 80px;
+      border-radius: 22px;
       background: #000000;
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.85);
       object-fit: cover;
       transition: transform 0.25s ease;
     }
@@ -131,9 +125,9 @@
     }
 
     .brand-title {
-      font-size: 34px;
+      font-size: 32px;
       font-weight: 800;
-      letter-spacing: -0.8px;
+      letter-spacing: -0.6px;
       color: var(--text-main);
       line-height: 1.1;
     }
@@ -143,33 +137,38 @@
       font-weight: 400;
       color: var(--text-sub);
       margin-top: 6px;
-      letter-spacing: 0.2px;
+      letter-spacing: 0.3px;
     }
 
-    /* Google Search Centerpiece (Zen & Chrome Style) */
+    /* Ultra-Smooth Google Search Centerpiece (Chrome & Zen Style) */
     .search-container {
       width: 100%;
-      margin-bottom: 32px;
+      margin-bottom: 30px;
     }
 
     .search-bar {
       display: flex;
       align-items: center;
       background: var(--input-bg);
-      backdrop-filter: blur(20px) saturate(1.4);
-      -webkit-backdrop-filter: blur(20px) saturate(1.4);
+      backdrop-filter: blur(28px) saturate(1.5);
+      -webkit-backdrop-filter: blur(28px) saturate(1.5);
       border: 1px solid var(--input-border);
-      border-radius: 36px;
-      padding: 6px 16px 6px 20px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      border-radius: 28px;
+      padding: 0 16px 0 20px;
+      height: 52px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .search-bar:hover,
+    .search-bar:hover {
+      border-color: rgba(255, 255, 255, 0.25);
+      box-shadow: 0 12px 38px rgba(0, 0, 0, 0.7);
+    }
+
     .search-bar:focus-within {
-      border-color: var(--input-focus);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.85), 0 0 0 1px var(--input-focus);
-      background: rgba(26, 26, 34, 0.95);
+      border-color: rgba(255, 255, 255, 0.35);
+      background: rgba(30, 30, 38, 0.95);
+      box-shadow: 0 14px 44px rgba(0, 0, 0, 0.85), 0 0 0 3px rgba(255, 255, 255, 0.08);
     }
 
     .google-icon {
@@ -181,13 +180,14 @@
 
     .search-input {
       flex: 1;
-      height: 46px;
+      height: 100%;
       background: transparent;
       border: none;
       color: var(--text-main);
       font-family: inherit;
       font-size: 15px;
       outline: none;
+      letter-spacing: 0.1px;
     }
 
     .search-input::placeholder {
@@ -195,38 +195,41 @@
       font-weight: 400;
     }
 
-    .search-submit-btn {
-      background: var(--text-main);
-      color: var(--bg-color);
-      border: none;
-      border-radius: 50%;
-      width: 38px;
-      height: 38px;
+    .search-enter-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-main);
+      border-radius: 18px;
+      padding: 5px 12px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
       display: flex;
       align-items: center;
-      justify-content: center;
+      gap: 6px;
       cursor: pointer;
       flex-shrink: 0;
-      transition: transform 0.15s ease, opacity 0.15s ease;
+      transition: all 0.18s ease;
     }
 
-    .search-submit-btn:hover {
-      transform: scale(1.08);
-      opacity: 0.95;
+    .search-enter-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.3);
+      transform: scale(1.03);
     }
 
-    .search-submit-btn:active {
-      transform: scale(0.94);
+    .search-enter-btn:active {
+      transform: scale(0.96);
     }
 
-    /* Speed Dial Top Sites (Clean Chrome / Zen Minimalist Grid) */
+    /* Speed Dial Top Sites (Official Logos) */
     .speed-dial-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
+      gap: 12px;
       width: 100%;
-      max-width: 580px;
-      margin-bottom: 36px;
+      max-width: 560px;
+      margin-bottom: 30px;
     }
 
     @media (max-width: 520px) {
@@ -254,14 +257,14 @@
       background: var(--card-hover);
       border-color: rgba(255, 255, 255, 0.2);
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
     }
 
     .tile-icon-wrap {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.05);
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.04);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -351,7 +354,7 @@
       <span class="brand-subtitle">Private • Borderless • Fast</span>
     </div>
 
-    <!-- Google Search Box -->
+    <!-- Ultra-Smooth Google Search Box -->
     <div class="search-container">
       <form id="searchForm">
         <div class="search-bar">
@@ -371,8 +374,9 @@
             autocomplete="off" 
             autofocus 
           />
-          <button type="submit" class="search-submit-btn" title="Search Google">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <button type="submit" class="search-enter-btn" title="Search Google">
+            <span>Search</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <line x1="5" y1="12" x2="19" y2="12"/>
               <polyline points="12 5 19 12 12 19"/>
             </svg>
@@ -381,32 +385,45 @@
       </form>
     </div>
 
-    <!-- Speed Dial Top Sites (Clean Chrome/Zen Aesthetic) -->
+    <!-- Speed Dial Top Sites (Original Official Brand Logos) -->
     <div class="speed-dial-grid">
+      <!-- YouTube Official Logo -->
       <div class="speed-dial-tile" data-url="https://www.youtube.com">
         <div class="tile-icon-wrap">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="#ef4444"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+          <svg width="22" height="16" viewBox="0 0 24 17">
+            <path fill="#FF0000" d="M23.498 2.686A3.016 3.016 0 0 0 21.376.55C19.505.045 12 .045 12 .045S4.495.045 2.623.55A3.017 3.017 0 0 0 .502 2.686C0 4.57 0 8.5 0 8.5s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 12.43 24 8.5 24 8.5s0-3.93-.502-5.814z"/>
+            <polygon fill="#FFFFFF" points="9.545 12.068 15.818 8.5 9.545 4.932"/>
+          </svg>
         </div>
         <span class="tile-title">YouTube</span>
       </div>
 
+      <!-- GitHub Official Logo -->
       <div class="speed-dial-tile" data-url="https://github.com">
         <div class="tile-icon-wrap">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#FFFFFF">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
         </div>
         <span class="tile-title">GitHub</span>
       </div>
 
+      <!-- OpenAI / ChatGPT Official Logo -->
       <div class="speed-dial-tile" data-url="https://chatgpt.com">
         <div class="tile-icon-wrap">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10a37f" stroke-width="2"><path d="M12 2a10 10 0 0 1 10 10c0 5.5-4.5 10-10 10S2 17.5 2 12 6.5 2 12 2z"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#10a37f">
+            <path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1683a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4947zm-9.66-5.0003a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1401-2.5213zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1683a.0757.0757 0 0 1-.071 0l-4.8303-2.7866A4.4992 4.4992 0 0 1 2.3408 7.8956zm16.0993 3.8558L12.5973 8.3829l2.02-1.1635a.0804.0804 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.402-.6863zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.0069 9.2298V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zm-12.641 4.1353l-2.6082-1.5057 2.6082-1.5057 2.6082 1.5057z"/>
+          </svg>
         </div>
         <span class="tile-title">ChatGPT</span>
       </div>
 
+      <!-- Wikipedia Official Logo -->
       <div class="speed-dial-tile" data-url="https://www.wikipedia.org">
         <div class="tile-icon-wrap">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+          <svg width="22" height="20" viewBox="0 0 24 20" fill="#FFFFFF">
+            <path d="M12.09 13.06L9.67 4.14H8.05L5.64 13.06 3.65 4.14H1.47l3.32 12.35h1.72l2.36-8.62 2.36 8.62h1.72l3.32-12.35h-2.18l-1.99 8.92zm7.74-8.92h-1.98l-2.84 10.47h1.62l.74-2.85h3.04l.74 2.85h1.62L19.83 4.14zm-1.07 6.13l1.1-4.22 1.1 4.22h-2.2z"/>
+          </svg>
         </div>
         <span class="tile-title">Wikipedia</span>
       </div>
