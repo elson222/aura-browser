@@ -12,6 +12,7 @@ const crxLoader = require('./crx-loader');
 // User Preferences State
 let darkModeEnabled = true;
 let adBlockerEnabled = true;
+let autoPipEnabled = true;
 let saveHistoryEnabled = true;
 let mouseGesturesEnabled = true;
 let vpnEnabled = false;
@@ -37,6 +38,7 @@ let userData = {
   ],
   darkModeEnabled: true,
   adBlockerEnabled: true,
+  autoPipEnabled: true,
   saveHistoryEnabled: true,
   mouseGesturesEnabled: true,
   vpnEnabled: false,
@@ -57,6 +59,7 @@ function loadUserData() {
       userData = { ...userData, ...loaded };
       darkModeEnabled = userData.darkModeEnabled !== false;
       adBlockerEnabled = userData.adBlockerEnabled !== false;
+      autoPipEnabled = userData.autoPipEnabled !== false;
       saveHistoryEnabled = userData.saveHistoryEnabled !== false;
       mouseGesturesEnabled = userData.mouseGesturesEnabled !== false;
       vpnEnabled = userData.vpnEnabled === true;
@@ -73,6 +76,7 @@ function saveUserData() {
   try {
     userData.darkModeEnabled = darkModeEnabled;
     userData.adBlockerEnabled = adBlockerEnabled;
+    userData.autoPipEnabled = autoPipEnabled;
     userData.saveHistoryEnabled = saveHistoryEnabled;
     userData.mouseGesturesEnabled = mouseGesturesEnabled;
     userData.vpnEnabled = vpnEnabled;
@@ -1039,6 +1043,7 @@ ipcMain.handle('get-dark-mode-status', () => {
 ipcMain.handle('get-settings', () => {
   return {
     adBlockerEnabled,
+    autoPipEnabled,
     darkModeEnabled,
     saveHistoryEnabled,
     mouseGesturesEnabled,
@@ -1055,6 +1060,11 @@ ipcMain.handle('save-setting', async (event, data) => {
     await applyAdBlockerCosmetics();
     if (mainWindow) {
       mainWindow.webContents.send('settings-changed', { adBlockerEnabled });
+    }
+  } else if (key === 'autoPipEnabled') {
+    autoPipEnabled = value;
+    if (mainWindow) {
+      mainWindow.webContents.send('settings-changed', { autoPipEnabled });
     }
   } else if (key === 'darkModeEnabled') {
     if (darkModeEnabled !== value) {

@@ -1,5 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 const { initMouseGestures } = require('./mouse-gestures');
+const { initAutoPiP } = require('./pip-engine');
+const { initZenFeatures } = require('./zen-features');
 
 contextBridge.exposeInMainWorld('electronAPI', {
   // === Search ===
@@ -180,6 +182,20 @@ function injectSidePanel() {
         </div>
         <label class="aura-switch">
           <input type="checkbox" id="aura-sidebar-adblock">
+          <span class="aura-slider"></span>
+        </label>
+      </div>
+
+      <div class="sidebar-row">
+        <div class="row-label">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="20" height="14" x="2" y="3" rx="2"/>
+            <rect width="8" height="6" x="12" y="9" rx="1"/>
+          </svg>
+          <span>Auto PiP</span>
+        </div>
+        <label class="aura-switch">
+          <input type="checkbox" id="aura-sidebar-autopip">
           <span class="aura-slider"></span>
         </label>
       </div>
@@ -530,6 +546,9 @@ function injectSidePanel() {
       const settings = await ipcRenderer.invoke('get-settings');
       if (settings) {
         document.getElementById('aura-sidebar-adblock').checked = settings.adBlockerEnabled;
+        if (document.getElementById('aura-sidebar-autopip')) {
+          document.getElementById('aura-sidebar-autopip').checked = settings.autoPipEnabled !== false;
+        }
         document.getElementById('aura-sidebar-darkmode').checked = settings.darkModeEnabled;
         document.getElementById('aura-sidebar-gestures').checked = settings.mouseGesturesEnabled;
         document.getElementById('aura-sidebar-history').checked = settings.saveHistoryEnabled;
@@ -558,7 +577,9 @@ function injectSidePanel() {
   }
 
   const bindToggle = (id, key) => {
-    document.getElementById(id).addEventListener('change', async (e) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('change', async (e) => {
       try {
         await ipcRenderer.invoke('save-setting', { key, value: e.target.checked });
       } catch (err) {
@@ -568,6 +589,7 @@ function injectSidePanel() {
   };
 
   bindToggle('aura-sidebar-adblock', 'adBlockerEnabled');
+  bindToggle('aura-sidebar-autopip', 'autoPipEnabled');
   bindToggle('aura-sidebar-darkmode', 'darkModeEnabled');
   bindToggle('aura-sidebar-gestures', 'mouseGesturesEnabled');
   bindToggle('aura-sidebar-history', 'saveHistoryEnabled');
@@ -597,6 +619,8 @@ if (typeof window !== 'undefined') {
   function startEnhancements() {
     initMouseGestures(ipcRenderer);
     if (window.location.protocol.startsWith('http')) {
+      initAutoPiP(ipcRenderer);
+      initZenFeatures(ipcRenderer);
       injectDownloaderButton();
       injectSidePanel();
     }

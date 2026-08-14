@@ -13,6 +13,7 @@
 
   const toggles = {
     adBlockerEnabled: document.getElementById('adblock-toggle'),
+    autoPipEnabled: document.getElementById('autopip-toggle'),
     mouseGesturesEnabled: document.getElementById('gestures-toggle'),
     darkModeEnabled: document.getElementById('darkmode-toggle'),
     saveHistoryEnabled: document.getElementById('history-toggle'),
