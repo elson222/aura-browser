@@ -267,6 +267,8 @@ function createMainWindow() {
       event.preventDefault();
       mainWindow.webContents.reloadIgnoringCache();
       return;
+    }
+
     // Backspace — Go back (when not editing an input or textarea)
     if (!ctrl && !alt && !shift && input.key === 'Backspace') {
       if (mainWindow) {
