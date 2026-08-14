@@ -1110,6 +1110,16 @@ ipcMain.on('cancel-extensions', () => {
   hideExtensionsOverlay();
 });
 
+ipcMain.handle('get-history', () => {
+  return userData.history || [];
+});
+
+ipcMain.handle('clear-history', () => {
+  userData.history = [];
+  saveUserData();
+  return true;
+});
+
 // Dark Mode
 ipcMain.handle('toggle-dark-mode', async () => {
   return await toggleDarkMode();

@@ -22,6 +22,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onExtensionsUpdated: (callback) => ipcRenderer.on('extensions-updated', (_event, data) => callback(data)),
   cancelExtensions: () => ipcRenderer.send('cancel-extensions'),
 
+  // === History ===
+  getHistory: () => ipcRenderer.invoke('get-history'),
+  clearHistory: () => ipcRenderer.invoke('clear-history'),
+
   // === Dark Mode ===
   toggleDarkMode: () => ipcRenderer.invoke('toggle-dark-mode'),
   getDarkModeStatus: () => ipcRenderer.invoke('get-dark-mode-status'),
