@@ -6,46 +6,52 @@
   <title>Aura Browser</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg-color: #000000;
-      --card-bg: rgba(255, 255, 255, 0.03);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --card-hover: rgba(255, 255, 255, 0.07);
       --text-main: #ffffff;
       --text-sub: #71717a;
-      --input-bg: rgba(24, 24, 30, 0.7);
-      --input-border: rgba(255, 255, 255, 0.12);
+      --search-bg: rgba(18, 18, 22, 0.75);
+      --search-border: rgba(255, 255, 255, 0.1);
+      --search-hover-border: rgba(255, 255, 255, 0.22);
       --tile-bg: rgba(255, 255, 255, 0.03);
       --tile-border: rgba(255, 255, 255, 0.06);
+      --tile-hover-bg: rgba(255, 255, 255, 0.07);
+      --tile-hover-border: rgba(255, 255, 255, 0.16);
+      --dock-bg: rgba(14, 14, 18, 0.85);
+      --dock-border: rgba(255, 255, 255, 0.08);
     }
 
     [data-theme="light"] {
       --bg-color: #ffffff;
-      --card-bg: rgba(0, 0, 0, 0.03);
-      --card-border: rgba(0, 0, 0, 0.08);
-      --card-hover: rgba(0, 0, 0, 0.06);
       --text-main: #09090b;
-      --text-sub: #64748b;
-      --input-bg: #f8fafc;
-      --input-border: rgba(0, 0, 0, 0.12);
-      --tile-bg: #f1f5f9;
+      --text-sub: #71717a;
+      --search-bg: rgba(244, 244, 247, 0.9);
+      --search-border: rgba(0, 0, 0, 0.08);
+      --search-hover-border: rgba(0, 0, 0, 0.18);
+      --tile-bg: rgba(0, 0, 0, 0.03);
       --tile-border: rgba(0, 0, 0, 0.06);
+      --tile-hover-bg: rgba(0, 0, 0, 0.06);
+      --tile-hover-border: rgba(0, 0, 0, 0.14);
+      --dock-bg: rgba(255, 255, 255, 0.9);
+      --dock-border: rgba(0, 0, 0, 0.08);
     }
 
     @media (prefers-color-scheme: light) {
       [data-theme="system"] {
         --bg-color: #ffffff;
-        --card-bg: rgba(0, 0, 0, 0.03);
-        --card-border: rgba(0, 0, 0, 0.08);
-        --card-hover: rgba(0, 0, 0, 0.06);
         --text-main: #09090b;
-        --text-sub: #64748b;
-        --input-bg: #f8fafc;
-        --input-border: rgba(0, 0, 0, 0.12);
-        --tile-bg: #f1f5f9;
+        --text-sub: #71717a;
+        --search-bg: rgba(244, 244, 247, 0.9);
+        --search-border: rgba(0, 0, 0, 0.08);
+        --search-hover-border: rgba(0, 0, 0, 0.18);
+        --tile-bg: rgba(0, 0, 0, 0.03);
         --tile-border: rgba(0, 0, 0, 0.06);
+        --tile-hover-bg: rgba(0, 0, 0, 0.06);
+        --tile-hover-border: rgba(0, 0, 0, 0.14);
+        --dock-bg: rgba(255, 255, 255, 0.9);
+        --dock-border: rgba(0, 0, 0, 0.08);
       }
     }
 
@@ -58,7 +64,7 @@
     }
 
     body {
-      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       background-color: var(--bg-color);
       color: var(--text-main);
       height: 100vh;
@@ -69,63 +75,53 @@
       overflow: hidden;
       user-select: none;
       padding: 24px;
-      transition: background-color 0.25s ease, color 0.25s ease;
+      transition: background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.25s ease;
     }
 
     .main-wrap {
       position: relative;
       z-index: 10;
       text-align: center;
-      max-width: 660px;
+      max-width: 620px;
       width: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
-      animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      animation: enterView 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    /* Brand Header */
+    /* Professional Geometric Brand Section */
     .brand-section {
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-bottom: 30px;
+      margin-bottom: 34px;
     }
 
-    .logo-glow-wrapper {
+    .logo-container {
       position: relative;
-      width: 80px;
-      height: 80px;
-      margin-bottom: 14px;
+      width: 76px;
+      height: 76px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .logo-glow-wrapper::after {
-      content: '';
-      position: absolute;
-      inset: -4px;
-      background: radial-gradient(circle, rgba(147, 51, 234, 0.35) 0%, rgba(6, 182, 212, 0.2) 60%, transparent 80%);
-      border-radius: 28px;
-      z-index: -1;
-      filter: blur(14px);
+    .logo-container:hover {
+      transform: scale(1.06);
     }
 
-    .logo-img {
-      width: 80px;
-      height: 80px;
-      border-radius: 22px;
-      background: #000000;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.85);
-      object-fit: cover;
-      transition: transform 0.25s ease;
-    }
-
-    .logo-img:hover {
-      transform: scale(1.05);
+    .logo-svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 10px 24px rgba(79, 172, 254, 0.35));
     }
 
     .brand-title {
-      font-size: 32px;
+      font-size: 30px;
       font-weight: 800;
       letter-spacing: -0.6px;
       color: var(--text-main);
@@ -134,13 +130,13 @@
 
     .brand-subtitle {
       font-size: 13px;
-      font-weight: 400;
+      font-weight: 500;
       color: var(--text-sub);
       margin-top: 6px;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.2px;
     }
 
-    /* Ultra-Smooth Google Search Centerpiece (Chrome & Zen Style) */
+    /* Ultra-Smooth Google Search Centerpiece */
     .search-container {
       width: 100%;
       margin-bottom: 30px;
@@ -149,26 +145,26 @@
     .search-bar {
       display: flex;
       align-items: center;
-      background: var(--input-bg);
-      backdrop-filter: blur(28px) saturate(1.5);
-      -webkit-backdrop-filter: blur(28px) saturate(1.5);
-      border: 1px solid var(--input-border);
-      border-radius: 28px;
+      background: var(--search-bg);
+      backdrop-filter: blur(32px) saturate(1.6);
+      -webkit-backdrop-filter: blur(32px) saturate(1.6);
+      border: 1px solid var(--search-border);
+      border-radius: 32px;
       padding: 0 16px 0 20px;
       height: 52px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .search-bar:hover {
-      border-color: rgba(255, 255, 255, 0.25);
-      box-shadow: 0 12px 38px rgba(0, 0, 0, 0.7);
+      border-color: var(--search-hover-border);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
     }
 
     .search-bar:focus-within {
-      border-color: rgba(255, 255, 255, 0.35);
-      background: rgba(30, 30, 38, 0.95);
-      box-shadow: 0 14px 44px rgba(0, 0, 0, 0.85), 0 0 0 3px rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.4);
+      background: rgba(24, 24, 30, 0.95);
+      box-shadow: 0 14px 44px rgba(0, 0, 0, 0.8), 0 0 0 3px rgba(255, 255, 255, 0.08);
     }
 
     .google-icon {
@@ -197,13 +193,13 @@
 
     .search-enter-btn {
       background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       color: var(--text-main);
       border-radius: 18px;
-      padding: 5px 12px;
+      padding: 6px 14px;
       font-family: inherit;
       font-size: 12px;
-      font-weight: 500;
+      font-weight: 600;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -218,21 +214,17 @@
       transform: scale(1.03);
     }
 
-    .search-enter-btn:active {
-      transform: scale(0.96);
-    }
-
-    /* Speed Dial Top Sites (Official Logos) */
+    /* Speed Dial Top Sites */
     .speed-dial-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 12px;
       width: 100%;
-      max-width: 560px;
-      margin-bottom: 30px;
+      max-width: 520px;
+      margin-bottom: 32px;
     }
 
-    @media (max-width: 520px) {
+    @media (max-width: 500px) {
       .speed-dial-grid {
         grid-template-columns: repeat(2, 1fr);
       }
@@ -243,26 +235,26 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 14px 10px;
+      padding: 16px 12px 14px;
       background: var(--tile-bg);
       border: 1px solid var(--tile-border);
-      border-radius: 16px;
+      border-radius: 18px;
       text-decoration: none;
       color: var(--text-main);
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
       cursor: pointer;
     }
 
     .speed-dial-tile:hover {
-      background: var(--card-hover);
-      border-color: rgba(255, 255, 255, 0.2);
+      background: var(--tile-hover-bg);
+      border-color: var(--tile-hover-border);
       transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     }
 
     .tile-icon-wrap {
-      width: 40px;
-      height: 40px;
+      width: 38px;
+      height: 38px;
       border-radius: 12px;
       background: rgba(255, 255, 255, 0.04);
       display: flex;
@@ -273,23 +265,20 @@
 
     .tile-title {
       font-size: 12px;
-      font-weight: 500;
+      font-weight: 600;
       color: var(--text-main);
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
     }
 
     /* Floating Status Dock */
     .status-dock {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 6px 14px;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 24px;
-      backdrop-filter: blur(16px);
+      gap: 10px;
+      padding: 6px 16px;
+      background: var(--dock-bg);
+      border: 1px solid var(--dock-border);
+      border-radius: 26px;
+      backdrop-filter: blur(20px);
     }
 
     .dock-pill {
@@ -297,7 +286,7 @@
       align-items: center;
       gap: 6px;
       font-size: 11px;
-      font-weight: 500;
+      font-weight: 600;
       color: #34d399;
       padding: 4px 10px;
       border-radius: 14px;
@@ -314,10 +303,10 @@
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      gap: 5px;
       padding: 4px 8px;
       border-radius: 8px;
-      transition: color 0.15s ease, background 0.15s ease;
+      transition: all 0.15s ease;
     }
 
     .dock-btn:hover {
@@ -331,13 +320,13 @@
       font-weight: 600;
       color: var(--text-sub);
       background: rgba(255, 255, 255, 0.08);
-      border: 1px solid var(--card-border);
+      border: 1px solid var(--dock-border);
       border-radius: 4px;
       padding: 1px 5px;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
+    @keyframes enterView {
+      from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
   </style>
@@ -345,16 +334,37 @@
 <body data-theme="dark">
 
   <div class="main-wrap">
-    <!-- Brand Header -->
+    <!-- Brand Header with Pure Vector Logo -->
     <div class="brand-section">
-      <div class="logo-glow-wrapper">
-        <img class="logo-img" src="assets/logo.jpg" alt="Aura Logo" />
+      <div class="logo-container">
+        <svg class="logo-svg" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="hbgGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#181428"/>
+              <stop offset="100%" stop-color="#050508"/>
+            </radialGradient>
+            <linearGradient id="haurora1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#00F2FE"/>
+              <stop offset="50%" stop-color="#4FACFE"/>
+              <stop offset="100%" stop-color="#7000FF"/>
+            </linearGradient>
+            <linearGradient id="haurora2" x1="100%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#FF007F"/>
+              <stop offset="50%" stop-color="#7928CA"/>
+              <stop offset="100%" stop-color="#4FACFE"/>
+            </linearGradient>
+          </defs>
+          <rect x="32" y="32" width="448" height="448" rx="112" fill="url(#hbgGlow)" stroke="rgba(255, 255, 255, 0.12)" stroke-width="2"/>
+          <path d="M156 364 C132 364 120 338 136 308 L232 142 C244 122 268 122 280 142 L376 308 C392 338 380 364 356 364 C336 364 322 350 312 332 L256 230 L200 332 C190 350 176 364 156 364 Z" fill="url(#haurora1)"/>
+          <path d="M188 288 C180 288 174 282 178 274 L244 158 C250 148 262 148 268 158 L334 274 C338 282 332 288 324 288 C294 288 278 270 256 270 C234 270 218 288 188 288 Z" fill="url(#haurora2)" opacity="0.96"/>
+          <circle cx="256" cy="216" r="16" fill="#FFFFFF"/>
+        </svg>
       </div>
       <h1 class="brand-title">Aura Browser</h1>
       <span class="brand-subtitle">Private • Borderless • Fast</span>
     </div>
 
-    <!-- Ultra-Smooth Google Search Box -->
+    <!-- Google Search Centerpiece -->
     <div class="search-container">
       <form id="searchForm">
         <div class="search-bar">
@@ -370,13 +380,13 @@
             type="text" 
             id="searchInput" 
             class="search-input" 
-            placeholder="Search Google or enter a web address..." 
+            placeholder="Search Google or enter address..." 
             autocomplete="off" 
             autofocus 
           />
           <button type="submit" class="search-enter-btn" title="Search Google">
             <span>Search</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <line x1="5" y1="12" x2="19" y2="12"/>
               <polyline points="12 5 19 12 12 19"/>
             </svg>
@@ -385,9 +395,9 @@
       </form>
     </div>
 
-    <!-- Speed Dial Top Sites (Original Official Brand Logos) -->
+    <!-- Speed Dial Top Sites -->
     <div class="speed-dial-grid">
-      <!-- YouTube Official Logo -->
+      <!-- YouTube -->
       <div class="speed-dial-tile" data-url="https://www.youtube.com">
         <div class="tile-icon-wrap">
           <svg width="22" height="16" viewBox="0 0 24 17">
@@ -398,17 +408,17 @@
         <span class="tile-title">YouTube</span>
       </div>
 
-      <!-- GitHub Official Logo -->
+      <!-- GitHub -->
       <div class="speed-dial-tile" data-url="https://github.com">
         <div class="tile-icon-wrap">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="#FFFFFF">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF">
             <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
           </svg>
         </div>
         <span class="tile-title">GitHub</span>
       </div>
 
-      <!-- OpenAI / ChatGPT Official Logo -->
+      <!-- ChatGPT -->
       <div class="speed-dial-tile" data-url="https://chatgpt.com">
         <div class="tile-icon-wrap">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="#10a37f">
@@ -418,7 +428,7 @@
         <span class="tile-title">ChatGPT</span>
       </div>
 
-      <!-- Wikipedia Official Logo -->
+      <!-- Wikipedia -->
       <div class="speed-dial-tile" data-url="https://www.wikipedia.org">
         <div class="tile-icon-wrap">
           <svg width="22" height="20" viewBox="0 0 24 20" fill="#FFFFFF">
@@ -429,7 +439,7 @@
       </div>
     </div>
 
-    <!-- Floating Minimal Status & Action Dock -->
+    <!-- Floating Minimal Status Dock -->
     <div class="status-dock">
       <span class="dock-pill">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -454,7 +464,6 @@
     const form = document.getElementById('searchForm');
     const input = document.getElementById('searchInput');
 
-    // Auto-focus input
     input.focus();
 
     form.addEventListener('submit', (e) => {
@@ -473,7 +482,6 @@
       }
     });
 
-    // Speed Dial Click Handlers
     document.querySelectorAll('.speed-dial-tile').forEach(tile => {
       tile.addEventListener('click', () => {
         const url = tile.getAttribute('data-url');
@@ -485,7 +493,6 @@
       });
     });
 
-    // Dock Action Buttons
     document.getElementById('dockHistory').addEventListener('click', () => {
       if (window.electronAPI && window.electronAPI.triggerAction) {
         window.electronAPI.triggerAction('search');
@@ -504,7 +511,6 @@
       }
     });
 
-    // Sync theme setting
     if (window.electronAPI && window.electronAPI.getSettings) {
       window.electronAPI.getSettings().then(settings => {
         if (settings) {

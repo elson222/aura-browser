@@ -77,7 +77,7 @@ function initZenFeatures(ipcRenderer) {
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </div>
         <div class="zen-btn" id="zen-btn-settings" title="Settings (Ctrl+,)">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0-.33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </div>
       </div>
     </div>
@@ -102,12 +102,12 @@ function initZenFeatures(ipcRenderer) {
       top: 50% !important;
       transform: translateY(-50%) !important;
       left: 0 !important;
-      width: 18px !important;
-      height: 48px !important;
+      width: 16px !important;
+      height: 44px !important;
       background: rgba(18, 18, 24, 0.9) !important;
       border: 1px solid rgba(255, 255, 255, 0.14) !important;
       border-left: none !important;
-      border-radius: 0 10px 10px 0 !important;
+      border-radius: 0 8px 8px 0 !important;
       z-index: 2147483645 !important;
       display: flex !important;
       align-items: center !important;
@@ -120,10 +120,9 @@ function initZenFeatures(ipcRenderer) {
     }
 
     #aura-zen-tab:hover {
-      width: 24px !important;
+      width: 22px !important;
       color: #ffffff !important;
       background: rgba(28, 28, 36, 0.98) !important;
-      border-color: rgba(255, 255, 255, 0.28) !important;
     }
 
     #aura-zen-dock {
@@ -223,7 +222,7 @@ function initZenFeatures(ipcRenderer) {
       display: flex !important;
       flex-direction: column !important;
       color: #ffffff !important;
-      font-family: 'Outfit', -apple-system, sans-serif !important;
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif !important;
     }
 
     #aura-zen-drawer.open {
@@ -264,28 +263,46 @@ function initZenFeatures(ipcRenderer) {
   document.body.appendChild(dock);
   document.body.appendChild(panelDrawer);
 
-  function toggleDock() {
-    const isVis = dock.classList.contains('visible');
-    if (isVis) {
+  let isDrawerOpen = false;
+
+  function showDock() {
+    dock.classList.add('visible');
+    tab.style.transform = 'translateY(-50%) rotate(180deg)';
+  }
+
+  function hideDock() {
+    if (!isDrawerOpen) {
       dock.classList.remove('visible');
-      panelDrawer.classList.remove('open');
       tab.style.transform = 'translateY(-50%) rotate(0deg)';
-    } else {
-      dock.classList.add('visible');
-      tab.style.transform = 'translateY(-50%) rotate(180deg)';
     }
   }
+
+  function toggleDock() {
+    if (dock.classList.contains('visible')) {
+      isDrawerOpen = false;
+      panelDrawer.classList.remove('open');
+      hideDock();
+    } else {
+      showDock();
+    }
+  }
+
+  // 100% Reliable Edge Mouse Move Listener
+  window.addEventListener('mousemove', (e) => {
+    if (e.clientX <= 8) {
+      showDock();
+    } else if (e.clientX > 64 && !isDrawerOpen) {
+      hideDock();
+    }
+  }, { passive: true });
 
   tab.addEventListener('click', toggleDock);
 
   dock.addEventListener('mouseleave', () => {
-    if (!panelDrawer.classList.contains('open')) {
-      dock.classList.remove('visible');
-      tab.style.transform = 'translateY(-50%) rotate(0deg)';
-    }
+    if (!isDrawerOpen) hideDock();
   });
 
-  // Listen for global shortcut (Ctrl+B)
+  // Global shortcut (Ctrl+B)
   if (ipcRenderer && ipcRenderer.on) {
     ipcRenderer.on('toggle-zen-dock', toggleDock);
   }
@@ -329,12 +346,13 @@ function initZenFeatures(ipcRenderer) {
   const drawerClose = document.getElementById('drawerClose');
 
   notesBtn.addEventListener('click', () => {
+    isDrawerOpen = true;
     drawerTitle.textContent = 'Quick Scratchpad';
     drawerContent.innerHTML = `
       <textarea id="zenQuickNotes" placeholder="Jot down notes, links, or ideas here..." style="width:100%; height:85%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:#fff; padding:12px; font-family:inherit; font-size:13px; resize:none; outline:none;"></textarea>
       <div style="font-size:11px; color:#71717a; margin-top:8px;">Auto-saved locally in browser storage.</div>
     `;
-    drawer.classList.toggle('open');
+    drawer.classList.add('open');
 
     const textarea = document.getElementById('zenQuickNotes');
     if (textarea) {
@@ -348,6 +366,7 @@ function initZenFeatures(ipcRenderer) {
   // AI Assistant Drawer
   const aiBtn = document.getElementById('zen-app-ai');
   aiBtn.addEventListener('click', () => {
+    isDrawerOpen = true;
     drawerTitle.textContent = 'AI Web Assistant';
     drawerContent.innerHTML = `
       <div style="display:flex; flex-direction:column; gap:12px; height:100%;">
@@ -357,7 +376,7 @@ function initZenFeatures(ipcRenderer) {
         <div id="aiResponse" style="flex:1; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:10px; font-size:12px; color:#d4d4d8; overflow-y:auto;">Ready for questions.</div>
       </div>
     `;
-    drawer.classList.toggle('open');
+    drawer.classList.add('open');
 
     document.getElementById('aiSend')?.addEventListener('click', () => {
       const q = document.getElementById('aiPrompt').value.trim();
@@ -368,9 +387,9 @@ function initZenFeatures(ipcRenderer) {
   });
 
   drawerClose.addEventListener('click', () => {
+    isDrawerOpen = false;
     drawer.classList.remove('open');
-    dock.classList.remove('visible');
-    tab.style.transform = 'translateY(-50%) rotate(0deg)';
+    hideDock();
   });
 
   // Action Buttons
