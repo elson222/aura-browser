@@ -9,12 +9,38 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-gradient: radial-gradient(circle at 50% 0%, #151518 0%, #09090b 70%, #000000 100%);
-      --accent-color: #ffffff;
-      --card-bg: rgba(255, 255, 255, 0.025);
-      --card-border: rgba(255, 255, 255, 0.07);
+      --bg-color: #000000;
+      --card-bg: #0d0d11;
+      --card-border: rgba(255, 255, 255, 0.1);
       --text-main: #ffffff;
       --text-sub: #8e8e93;
+      --input-bg: #121216;
+      --input-border: rgba(255, 255, 255, 0.15);
+      --input-focus: #ffffff;
+    }
+
+    [data-theme="light"] {
+      --bg-color: #ffffff;
+      --card-bg: #f4f4f6;
+      --card-border: rgba(0, 0, 0, 0.08);
+      --text-main: #09090b;
+      --text-sub: #64748b;
+      --input-bg: #f8fafc;
+      --input-border: rgba(0, 0, 0, 0.15);
+      --input-focus: #000000;
+    }
+
+    @media (prefers-color-scheme: light) {
+      [data-theme="system"] {
+        --bg-color: #ffffff;
+        --card-bg: #f4f4f6;
+        --card-border: rgba(0, 0, 0, 0.08);
+        --text-main: #09090b;
+        --text-sub: #64748b;
+        --input-bg: #f8fafc;
+        --input-border: rgba(0, 0, 0, 0.15);
+        --input-focus: #000000;
+      }
     }
 
     * {
@@ -25,7 +51,7 @@
 
     body {
       font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--bg-gradient);
+      background-color: var(--bg-color);
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
@@ -35,340 +61,338 @@
       overflow-x: hidden;
       overflow-y: auto;
       padding: 40px 20px;
+      transition: background-color 0.2s ease, color 0.2s ease;
     }
 
     .container {
       position: relative;
       z-index: 10;
       text-align: center;
-      max-width: 760px;
+      max-width: 680px;
       width: 100%;
     }
 
-    .logo-container {
-      margin-bottom: 24px;
-      position: relative;
-      display: inline-flex;
-      align-items: center;
+    /* Google Brand Heading */
+    .google-brand {
+      display: flex;
       justify-content: center;
-      width: 96px;
-      height: 96px;
-      border-radius: 26px;
-      background: #000000;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.8), 0 0 35px rgba(123, 44, 191, 0.4);
-      overflow: hidden;
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
     }
 
-    .logo-container:hover {
-      transform: scale(1.05);
-      box-shadow: 0 16px 45px rgba(0, 0, 0, 0.9), 0 0 45px rgba(0, 245, 212, 0.45);
+    .google-brand svg {
+      width: 32px;
+      height: 32px;
     }
 
-    .logo-img {
+    .google-brand h1 {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--text-main);
+    }
+
+    /* Google Search Box */
+    .search-box-container {
+      position: relative;
       width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 25px;
-      user-select: none;
-    }
-
-    h1 {
-      font-size: 40px;
-      font-weight: 800;
-      letter-spacing: -0.6px;
-      margin-bottom: 10px;
-      color: #ffffff;
-    }
-
-    p.tagline {
-      font-size: 16px;
-      font-weight: 400;
-      color: var(--text-sub);
       margin-bottom: 32px;
     }
 
-    .feature-badges {
+    .search-input-wrapper {
+      display: flex;
+      align-items: center;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 28px;
+      padding: 6px 18px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      transition: all 0.2s ease;
+    }
+
+    .search-input-wrapper:hover,
+    .search-input-wrapper:focus-within {
+      border-color: var(--input-focus);
+      box-shadow: 0 6px 28px rgba(0, 0, 0, 0.6);
+    }
+
+    .search-icon {
+      color: var(--text-sub);
+      margin-right: 12px;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-input {
+      flex: 1;
+      height: 44px;
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .search-input::placeholder {
+      color: var(--text-sub);
+    }
+
+    .search-submit-btn {
+      background: var(--text-main);
+      color: var(--bg-color);
+      border: none;
+      border-radius: 50%;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    .search-submit-btn:hover {
+      transform: scale(1.08);
+    }
+
+    .search-submit-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Status Badges */
+    .status-badges {
       display: flex;
       justify-content: center;
       gap: 10px;
-      margin-bottom: 36px;
+      margin-bottom: 32px;
       flex-wrap: wrap;
     }
 
-    .feature-badge {
+    .status-badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
       font-size: 12px;
       font-weight: 500;
       padding: 6px 14px;
-      border-radius: 24px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      color: #d4d4d8;
-    }
-
-    .feature-badge.active {
-      background: rgba(16, 185, 129, 0.1);
-      border-color: rgba(16, 185, 129, 0.25);
-      color: #34d399;
-    }
-
-    .search-trigger-btn {
-      width: 100%;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 14px;
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      color: #71717a;
-      font-family: inherit;
-      font-size: 15px;
-      cursor: pointer;
-      margin-bottom: 36px;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    }
-
-    .search-trigger-btn:hover {
-      background: rgba(255, 255, 255, 0.07);
-      border-color: rgba(255, 255, 255, 0.22);
-      color: #a1a1aa;
-    }
-
-    .search-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .shortcuts-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 12px;
-      margin-bottom: 36px;
-      text-align: left;
-    }
-
-    .shortcut-card {
+      border-radius: 20px;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 14px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: all 0.2s ease;
+      color: var(--text-sub);
     }
 
-    .shortcut-card:hover {
-      background: rgba(255, 255, 255, 0.045);
-      border-color: rgba(255, 255, 255, 0.15);
+    .status-badge.active {
+      color: #34d399;
+      border-color: rgba(52, 211, 153, 0.3);
+      background: rgba(52, 211, 153, 0.08);
     }
 
-    .shortcut-desc {
-      font-size: 13px;
-      color: #a1a1aa;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .key-caps {
-      display: flex;
-      gap: 4px;
-    }
-
-    kbd {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 5px;
-      padding: 3px 7px;
-      font-size: 11px;
-      font-weight: 600;
-      color: #ffffff;
-      font-family: inherit;
-    }
-
-    .gestures-container {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 14px;
+    /* Shortcuts Grid */
+    .shortcuts-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
       padding: 20px;
-      margin-bottom: 30px;
+      margin-bottom: 24px;
       text-align: left;
     }
 
-    .section-title {
-      font-size: 12px;
-      font-weight: 600;
-      color: #71717a;
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-sub);
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 0.8px;
       margin-bottom: 14px;
       display: flex;
       align-items: center;
       gap: 6px;
     }
 
-    .gestures-grid {
+    .shortcuts-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
     }
 
-    .gesture-item {
+    @media (max-width: 600px) {
+      .shortcuts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .shortcut-row {
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      color: #a1a1aa;
-      background: rgba(255, 255, 255, 0.02);
-      padding: 8px 12px;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.04);
-    }
-
-    .gesture-dir {
-      font-weight: 700;
-      color: #34d399;
-      font-size: 11px;
-      letter-spacing: 0.5px;
-      background: rgba(16, 185, 129, 0.12);
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-
-    .tip-section {
       font-size: 13px;
-      color: #71717a;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 8px;
+      color: var(--text-main);
+      padding: 6px 0;
     }
 
-    .pulse-dot {
-      width: 8px;
-      height: 8px;
-      background-color: #34d399;
-      border-radius: 50%;
-      box-shadow: 0 0 10px #34d399;
+    .shortcut-row span {
+      color: var(--text-sub);
+    }
+
+    kbd {
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 3px 7px;
+    }
+
+    [data-theme="light"] kbd {
+      background: rgba(0, 0, 0, 0.06);
+    }
+
+    .footer-tip {
+      font-size: 12px;
+      color: var(--text-sub);
+      margin-top: 16px;
     }
   </style>
 </head>
-<body>
+<body data-theme="dark">
 
   <div class="container">
-    <div class="logo-container">
-      <img class="logo-img" src="assets/logo.jpg" alt="Aura Browser Logo" />
+    <!-- Google Brand Heading -->
+    <div class="google-brand">
+      <svg viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.29 21.43 7.37 24 12 24z"/>
+        <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.17 0 9.99 0 12s.46 3.83 1.26 5.42l4.02-3.15z"/>
+        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.37 0 3.29 2.57 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+      </svg>
+      <h1>Aura Browser</h1>
     </div>
 
-    <h1>Aura Browser</h1>
-    <p class="tagline">Immersive borderless browsing with Chrome extensions, native ad blocking, and mouse gestures.</p>
+    <!-- Default Google Search Box -->
+    <div class="search-box-container">
+      <form id="googleSearchForm">
+        <div class="search-input-wrapper">
+          <div class="search-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </div>
+          <input 
+            type="text" 
+            id="googleSearchInput" 
+            class="search-input" 
+            placeholder="Search Google or enter a web URL..." 
+            autocomplete="off" 
+            autofocus 
+          />
+          <button type="submit" class="search-submit-btn" title="Search Google">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </button>
+        </div>
+      </form>
+    </div>
 
-    <div class="feature-badges">
-      <span class="feature-badge active">
+    <!-- Live Status Badges -->
+    <div class="status-badges">
+      <span class="status-badge active">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         Ad Blocker Active
       </span>
-      <span class="feature-badge">
+      <span class="status-badge active">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="3" rx="2"/><rect width="8" height="6" x="12" y="9" rx="1"/></svg>
+        Auto PiP Enabled
+      </span>
+      <span class="status-badge">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/><polyline points="6 9 12 15 18 9"/></svg>
-        Mouse Gestures
-      </span>
-      <span class="feature-badge">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-        Chrome Extensions
-      </span>
-      <span class="feature-badge">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        Dark Mode
-      </span>
-      <span class="feature-badge">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Media Downloader
+        Mouse Gestures Ready
       </span>
     </div>
 
-    <!-- Clickable Search Bar -->
-    <div class="search-trigger-btn" id="searchTrigger">
-      <div class="search-left">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"/>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        <span>Search Google, use !d, !yt, !wiki, or enter a URL...</span>
-      </div>
-      <div class="key-caps"><kbd>Ctrl</kbd><kbd>T</kbd></div>
-    </div>
-
-    <!-- Mouse Gestures Guide -->
-    <div class="gestures-container">
-      <div class="section-title">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/><polyline points="6 9 12 15 18 9"/></svg>
-        <span>Right-Click Mouse Gestures</span>
-      </div>
-      <div class="gestures-grid">
-        <div class="gesture-item"><span class="gesture-dir">Drag ←</span><span>Go Back</span></div>
-        <div class="gesture-item"><span class="gesture-dir">Drag →</span><span>Go Forward</span></div>
-        <div class="gesture-item"><span class="gesture-dir">Drag ↑</span><span>Scroll Top</span></div>
-        <div class="gesture-item"><span class="gesture-dir">Drag ↓</span><span>Scroll Bottom</span></div>
-        <div class="gesture-item"><span class="gesture-dir">Drag ↑↓</span><span>Reload Page</span></div>
-        <div class="gesture-item"><span class="gesture-dir">Drag ↓→</span><span>Close / Home</span></div>
-        <div class="gesture-item"><span class="gesture-dir">Drag ↓↑</span><span>Search Omnibox</span></div>
-      </div>
-    </div>
-
-    <!-- Keyboard Shortcuts Grid -->
-    <div class="shortcuts-grid">
-      <div class="shortcut-card">
-        <span class="shortcut-desc">Search / Open URL</span>
-        <div class="key-caps"><kbd>Ctrl</kbd><kbd>T</kbd></div>
-      </div>
-      <div class="shortcut-card">
-        <span class="shortcut-desc">Extensions Manager</span>
-        <div class="key-caps"><kbd>Ctrl</kbd><kbd>⇧</kbd><kbd>E</kbd></div>
-      </div>
-      <div class="shortcut-card">
-        <span class="shortcut-desc">Downloads Manager</span>
-        <div class="key-caps"><kbd>Ctrl</kbd><kbd>J</kbd></div>
-      </div>
-      <div class="shortcut-card">
-        <span class="shortcut-desc">Browser Settings</span>
-        <div class="key-caps"><kbd>Ctrl</kbd><kbd>,</kbd></div>
-      </div>
-      <div class="shortcut-card">
-        <span class="shortcut-desc">Toggle Dark Mode</span>
-        <div class="key-caps"><kbd>Ctrl</kbd><kbd>⇧</kbd><kbd>D</kbd></div>
-      </div>
-      <div class="shortcut-card">
-        <span class="shortcut-desc">Minimize / Window Mode</span>
-        <div class="key-caps"><kbd>Ctrl</kbd><kbd>Esc</kbd></div>
-      </div>
-      <div class="shortcut-card">
-        <span class="shortcut-desc">Confirm Exit</span>
-        <div class="key-caps"><kbd>Esc</kbd></div>
-      </div>
-      <div class="shortcut-card">
-        <span class="shortcut-desc">Fast Double Exit</span>
-        <div class="key-caps"><kbd>Esc</kbd><kbd>Esc</kbd></div>
+    <!-- Essential Keyboard Shortcuts -->
+    <div class="shortcuts-card">
+      <div class="card-title">Quick Controls & Shortcuts</div>
+      <div class="shortcuts-grid">
+        <div class="shortcut-row">
+          <span>Search / Open URL</span>
+          <kbd>Ctrl + T</kbd>
+        </div>
+        <div class="shortcut-row">
+          <span>Go Back / Forward</span>
+          <div><kbd>Backspace</kbd> / <kbd>Alt + ←</kbd></div>
+        </div>
+        <div class="shortcut-row">
+          <span>Exit Prompt</span>
+          <kbd>Esc</kbd>
+        </div>
+        <div class="shortcut-row">
+          <span>Instant Quick Exit</span>
+          <kbd>Double Esc</kbd>
+        </div>
+        <div class="shortcut-row">
+          <span>Minimize / Windowed</span>
+          <kbd>Ctrl + Esc</kbd>
+        </div>
+        <div class="shortcut-row">
+          <span>Browser Settings</span>
+          <kbd>Ctrl + ,</kbd>
+        </div>
       </div>
     </div>
 
-    <div class="tip-section">
-      <div class="pulse-dot"></div>
-      <span>Press <kbd>Ctrl + T</kbd> or click the search bar to start browsing</span>
+    <div class="footer-tip">
+      Press <kbd>Ctrl + T</kbd> anytime or drag with right-click for mouse gestures.
     </div>
   </div>
 
   <script>
-    document.getElementById('searchTrigger').addEventListener('click', () => {
-      window.electronAPI.triggerAction('search');
+    const form = document.getElementById('googleSearchForm');
+    const input = document.getElementById('googleSearchInput');
+
+    // Auto-focus search on load
+    input.focus();
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const q = input.value.trim();
+      if (!q) return;
+
+      if (window.electronAPI && window.electronAPI.performNavigation) {
+        window.electronAPI.performNavigation(q);
+      } else {
+        if (/^https?:\/\//i.test(q) || /^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}/i.test(q)) {
+          window.location.href = /^https?:\/\//i.test(q) ? q : 'https://' + q;
+        } else {
+          window.location.href = 'https://www.google.com/search?q=' + encodeURIComponent(q);
+        }
+      }
     });
+
+    // Sync theme setting
+    if (window.electronAPI && window.electronAPI.getSettings) {
+      window.electronAPI.getSettings().then(settings => {
+        if (settings) {
+          applyTheme(settings.themeMode || (settings.darkModeEnabled ? 'dark' : 'light'));
+        }
+      }).catch(() => {});
+
+      if (window.electronAPI.onSettingsChanged) {
+        window.electronAPI.onSettingsChanged(settings => {
+          if (settings.themeMode) applyTheme(settings.themeMode);
+        });
+      }
+    }
+
+    function applyTheme(theme) {
+      document.body.setAttribute('data-theme', theme || 'dark');
+    }
   </script>
 </body>
 </html>

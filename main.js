@@ -267,6 +267,23 @@ function createMainWindow() {
       event.preventDefault();
       mainWindow.webContents.reloadIgnoringCache();
       return;
+    // Backspace — Go back (when not editing an input or textarea)
+    if (!ctrl && !alt && !shift && input.key === 'Backspace') {
+      if (mainWindow) {
+        mainWindow.webContents.executeJavaScript(`
+          (function() {
+            const el = document.activeElement;
+            if (!el) return true;
+            const tag = el.tagName.toLowerCase();
+            const isEditable = el.isContentEditable || tag === 'input' || tag === 'textarea' || tag === 'select';
+            return !isEditable;
+          })()
+        `).then(shouldGoBack => {
+          if (shouldGoBack && mainWindow && mainWindow.webContents.canGoBack()) {
+            mainWindow.webContents.goBack();
+          }
+        }).catch(() => {});
+      }
     }
 
     // Alt+Left — Go back
@@ -823,6 +840,67 @@ function hideSettingsOverlay() {
 }
 
 // ============================================================
+// EXIT MODAL OVERLAY
+// ============================================================
+
+function createExitModalWindow() {
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { width, height } = primaryDisplay.workAreaSize;
+  const overlayWidth = 440;
+  const overlayHeight = 240;
+
+  exitModalWindow = new BrowserWindow({
+    width: overlayWidth,
+    height: overlayHeight,
+    x: Math.floor((width - overlayWidth) / 2),
+    y: Math.floor((height - overlayHeight) / 2),
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    show: false,
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    fullscreenable: false,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js')
+    }
+  });
+
+  exitModalWindow.loadFile(path.join(__dirname, 'exit-modal.html'));
+
+  exitModalWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.type === 'keyDown') {
+      if (input.key === 'Escape' || input.key === 'Enter') {
+        event.preventDefault();
+        app.quit();
+      } else if (input.key === ' ' || input.key === 'Spacebar') {
+        event.preventDefault();
+        hideExitModal();
+      }
+    }
+  });
+
+  exitModalWindow.on('blur', () => {
+    hideExitModal();
+  });
+}
+
+function showExitModal() {
+  if (!exitModalWindow) return;
+  exitModalWindow.show();
+  exitModalWindow.focus();
+}
+
+function hideExitModal() {
+  if (!exitModalWindow) return;
+  exitModalWindow.hide();
+  if (mainWindow) mainWindow.focus();
+}
+
+// ============================================================
 // DOWNLOAD POPUP & MANAGER
 // ============================================================
 
@@ -1039,12 +1117,15 @@ ipcMain.handle('get-dark-mode-status', () => {
   return darkModeEnabled;
 });
 
+let themeMode = 'dark'; // 'dark', 'light', 'system'
+
 // Settings
 ipcMain.handle('get-settings', () => {
   return {
     adBlockerEnabled,
     autoPipEnabled,
     darkModeEnabled,
+    themeMode,
     saveHistoryEnabled,
     mouseGesturesEnabled,
     vpnEnabled,
@@ -1055,7 +1136,22 @@ ipcMain.handle('get-settings', () => {
 
 ipcMain.handle('save-setting', async (event, data) => {
   const { key, value } = data || {};
-  if (key === 'adBlockerEnabled') {
+  if (key === 'themeMode') {
+    themeMode = value;
+    if (themeMode === 'light') {
+      darkModeEnabled = false;
+      nativeTheme.themeSource = 'light';
+    } else if (themeMode === 'dark') {
+      darkModeEnabled = true;
+      nativeTheme.themeSource = 'dark';
+    } else {
+      nativeTheme.themeSource = 'system';
+      darkModeEnabled = nativeTheme.shouldUseDarkColors;
+    }
+    if (mainWindow) {
+      mainWindow.webContents.send('settings-changed', { themeMode, darkModeEnabled });
+    }
+  } else if (key === 'adBlockerEnabled') {
     adBlockerEnabled = value;
     await applyAdBlockerCosmetics();
     if (mainWindow) {

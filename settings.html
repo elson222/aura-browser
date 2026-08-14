@@ -3,25 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Settings — AuraBrowser</title>
+  <title>Aura Settings</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="settings.css">
 </head>
 <body>
-  <div class="settings-wrapper" id="settingsContainer">
+  <div class="settings-card">
     <!-- Header -->
     <div class="settings-header">
-      <div class="header-info">
-        <div class="header-title-wrap">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <div class="header-left">
+        <div class="title-wrap">
+          <svg class="header-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"/>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
           </svg>
           <h2>Browser Settings</h2>
         </div>
-        <span class="subtitle">Customize security, performance & interaction preferences</span>
+        <span class="subtitle">Customize appearance, shields, and report browser feedback</span>
       </div>
       <button class="close-btn" id="closeBtn" title="Close (Esc)">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -33,6 +33,22 @@
 
     <!-- Settings List -->
     <div class="settings-list">
+      <!-- Setting Option: Color Theme Mode -->
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-title-wrap">
+            <svg class="setting-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2v20M12 12 2.1 12"/></svg>
+            <span class="setting-title">Appearance Theme</span>
+          </div>
+          <span class="setting-desc">Choose deep black, true white, or sync with Windows system</span>
+        </div>
+        <select class="settings-select" id="theme-mode-select">
+          <option value="dark">True Deep Black (AMOLED)</option>
+          <option value="light">Pure White (Light Mode)</option>
+          <option value="system">System (Auto Sync)</option>
+        </select>
+      </div>
+
       <!-- Setting Option: Built-in Free Ad Blocker -->
       <div class="setting-row">
         <div class="setting-info">
@@ -80,36 +96,6 @@
         </label>
       </div>
 
-      <!-- Setting Option: Dark Mode -->
-      <div class="setting-row">
-        <div class="setting-info">
-          <div class="setting-title-wrap">
-            <svg class="setting-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-            <span class="setting-title">Aura Dark Theme</span>
-          </div>
-          <span class="setting-desc">Force websites and browser interfaces into dark mode</span>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="darkmode-toggle">
-          <span class="slider"></span>
-        </label>
-      </div>
-
-      <!-- Setting Option: Dark Style -->
-      <div class="setting-row" id="dark-style-row">
-        <div class="setting-info">
-          <div class="setting-title-wrap">
-            <svg class="setting-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2v20M12 12 2.1 12"/></svg>
-            <span class="setting-title">Dark Theme Style</span>
-          </div>
-          <span class="setting-desc">Select between modern Aura Grey or OLED Pure Black</span>
-        </div>
-        <select class="settings-select" id="dark-style-select">
-          <option value="grey">Aura Grey (Recommended)</option>
-          <option value="black">Deep OLED Black</option>
-        </select>
-      </div>
-
       <!-- Setting Option: Free VPN -->
       <div class="setting-row">
         <div class="setting-info">
@@ -139,15 +125,43 @@
           <span class="slider"></span>
         </label>
       </div>
-    </div>
 
-    <!-- Actions -->
-    <div class="settings-actions">
-      <button class="action-btn danger" id="clearDataBtn">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-        <span>Clear Browsing Data</span>
-      </button>
-      <div class="action-status" id="actionStatus"></div>
+      <!-- Section: User Feedback & Issue Reporter -->
+      <div class="feedback-section">
+        <div class="feedback-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span>Report an Issue or Send Feedback</span>
+        </div>
+        <div class="feedback-form">
+          <div class="feedback-row">
+            <select class="settings-select" id="feedbackCategory" style="width: 100%;">
+              <option value="bug">Bug Report (Something broke)</option>
+              <option value="feature">Feature Request (Idea for Aura)</option>
+              <option value="adblock">Ad Blocker Issue</option>
+              <option value="performance">Speed & Performance</option>
+              <option value="general">General Feedback</option>
+            </select>
+          </div>
+          <textarea id="feedbackText" class="feedback-textarea" placeholder="Describe the issue you're facing or what you'd love to see improved..."></textarea>
+          <div class="feedback-footer">
+            <input type="email" id="feedbackEmail" class="feedback-email" placeholder="Your email (optional)" />
+            <button id="sendFeedbackBtn" class="btn-primary">Submit Feedback</button>
+          </div>
+          <div id="feedbackStatus" class="feedback-status"></div>
+        </div>
+      </div>
+
+      <!-- Danger Zone / Data Management -->
+      <div class="setting-row danger-zone">
+        <div class="setting-info">
+          <div class="setting-title-wrap">
+            <svg class="setting-icon danger" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            <span class="setting-title">Clear Browsing Data</span>
+          </div>
+          <span class="setting-desc">Purge all cache, local storage, session cookies, and history records</span>
+        </div>
+        <button class="btn-danger" id="clearDataBtn">Clear All</button>
+      </div>
     </div>
   </div>
 

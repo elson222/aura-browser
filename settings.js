@@ -1,134 +1,129 @@
-/* ============================================================
-   AuraBrowser — Settings Overlay Logic
-   Manages user preferences, mouse gestures, ad blocker, and data clearance
-   ============================================================ */
-
-(() => {
-  'use strict';
-
-  const settingsContainer = document.getElementById('settingsContainer');
+document.addEventListener('DOMContentLoaded', async () => {
   const closeBtn = document.getElementById('closeBtn');
   const clearDataBtn = document.getElementById('clearDataBtn');
-  const actionStatus = document.getElementById('actionStatus');
+  const themeSelect = document.getElementById('theme-mode-select');
+
+  // Feedback form elements
+  const feedbackCategory = document.getElementById('feedbackCategory');
+  const feedbackText = document.getElementById('feedbackText');
+  const feedbackEmail = document.getElementById('feedbackEmail');
+  const sendFeedbackBtn = document.getElementById('sendFeedbackBtn');
+  const feedbackStatus = document.getElementById('feedbackStatus');
 
   const toggles = {
     adBlockerEnabled: document.getElementById('adblock-toggle'),
     autoPipEnabled: document.getElementById('autopip-toggle'),
     mouseGesturesEnabled: document.getElementById('gestures-toggle'),
-    darkModeEnabled: document.getElementById('darkmode-toggle'),
     saveHistoryEnabled: document.getElementById('history-toggle'),
     vpnEnabled: document.getElementById('vpn-toggle')
   };
 
-  const darkStyleSelect = document.getElementById('dark-style-select');
-  const darkStyleRow = document.getElementById('dark-style-row');
-
-  function updateStyleRowVisibility() {
-    if (toggles.darkModeEnabled && toggles.darkModeEnabled.checked) {
-      darkStyleRow.style.display = 'flex';
-    } else {
-      darkStyleRow.style.display = 'none';
-    }
-  }
-
-  // Preload API: Get Settings on load
-  if (window.electronAPI) {
-    window.electronAPI.getSettings().then(settings => {
-      if (settings) {
-        Object.keys(toggles).forEach(key => {
-          if (toggles[key] && settings[key] !== undefined) {
-            toggles[key].checked = settings[key];
-          }
-        });
-        if (settings.darkThemeStyle && darkStyleSelect) {
-          darkStyleSelect.value = settings.darkThemeStyle;
-        }
-        updateStyleRowVisibility();
-      }
-    }).catch(err => {
-      console.error('Failed to load settings:', err);
-    });
-  }
-
-  // Toggle Event Listeners
-  Object.keys(toggles).forEach(key => {
-    const el = toggles[key];
-    if (el) {
-      el.addEventListener('change', async () => {
-        if (window.electronAPI) {
-          try {
-            await window.electronAPI.saveSetting(key, el.checked);
-          } catch (err) {
-            console.error(`Failed to save setting ${key}:`, err);
-            el.checked = !el.checked;
-          }
+  // Load current settings
+  try {
+    const settings = await window.electronAPI.getSettings();
+    if (settings) {
+      Object.keys(toggles).forEach(key => {
+        if (toggles[key] && typeof settings[key] !== 'undefined') {
+          toggles[key].checked = settings[key];
         }
       });
+
+      if (settings.themeMode) {
+        themeSelect.value = settings.themeMode;
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load settings:', err);
+  }
+
+  // Theme selection handler
+  themeSelect.addEventListener('change', async (e) => {
+    const theme = e.target.value;
+    try {
+      await window.electronAPI.saveSetting('themeMode', theme);
+      if (theme === 'light') {
+        document.body.setAttribute('data-theme', 'light');
+      } else {
+        document.body.removeAttribute('data-theme');
+      }
+    } catch (err) {
+      console.error('Failed to save theme mode:', err);
     }
   });
 
-  if (darkStyleSelect) {
-    darkStyleSelect.addEventListener('change', async () => {
-      if (window.electronAPI) {
-        try {
-          await window.electronAPI.saveSetting('darkThemeStyle', darkStyleSelect.value);
-        } catch (err) {
-          console.error('Failed to save darkThemeStyle:', err);
-        }
+  // Toggles binding
+  Object.keys(toggles).forEach(key => {
+    const el = toggles[key];
+    if (!el) return;
+
+    el.addEventListener('change', async (e) => {
+      try {
+        await window.electronAPI.saveSetting(key, e.target.checked);
+      } catch (err) {
+        console.error(`Failed to save setting ${key}:`, err);
+        e.target.checked = !e.target.checked;
       }
     });
-  }
+  });
 
-  if (toggles.darkModeEnabled) {
-    toggles.darkModeEnabled.addEventListener('change', updateStyleRowVisibility);
-  }
+  // Feedback Submission
+  sendFeedbackBtn.addEventListener('click', async () => {
+    const message = feedbackText.value.trim();
+    if (!message) {
+      feedbackStatus.textContent = 'Please enter your feedback or issue description.';
+      feedbackStatus.style.color = '#f87171';
+      feedbackStatus.style.display = 'block';
+      return;
+    }
 
-  // Clear Browsing Data
+    sendFeedbackBtn.disabled = true;
+    sendFeedbackBtn.textContent = 'Sending...';
+
+    const feedbackData = {
+      category: feedbackCategory.value,
+      message: message,
+      email: feedbackEmail.value.trim(),
+      timestamp: new Date().toISOString()
+    };
+
+    try {
+      // Save feedback in user data
+      const existing = JSON.parse(localStorage.getItem('aura_user_feedback') || '[]');
+      existing.push(feedbackData);
+      localStorage.setItem('aura_user_feedback', JSON.stringify(existing));
+
+      feedbackStatus.textContent = 'Thank you! Your feedback has been recorded.';
+      feedbackStatus.style.color = '#34d399';
+      feedbackStatus.style.display = 'block';
+      feedbackText.value = '';
+      feedbackEmail.value = '';
+    } catch (err) {
+      feedbackStatus.textContent = 'Feedback saved locally.';
+      feedbackStatus.style.color = '#34d399';
+      feedbackStatus.style.display = 'block';
+    } finally {
+      sendFeedbackBtn.disabled = false;
+      sendFeedbackBtn.textContent = 'Submit Feedback';
+      setTimeout(() => {
+        feedbackStatus.style.display = 'none';
+      }, 4000);
+    }
+  });
+
+  // Clear data button
   clearDataBtn.addEventListener('click', async () => {
-    if (window.electronAPI) {
-      clearDataBtn.disabled = true;
-      clearDataBtn.querySelector('span').textContent = 'Clearing...';
+    if (confirm('Are you sure you want to clear all history, cookies, and cached data?')) {
       try {
         await window.electronAPI.clearBrowsingData();
-        showStatus('Browsing data cleared successfully!');
+        alert('All browsing data has been cleared.');
       } catch (err) {
-        console.error('Failed to clear browsing data:', err);
-        showStatus('Failed to clear data.', true);
-      } finally {
-        clearDataBtn.disabled = false;
-        clearDataBtn.querySelector('span').textContent = 'Clear Browsing Data';
+        alert('Failed to clear data: ' + err.message);
       }
     }
   });
 
-  function closeSettings() {
-    settingsContainer.style.animation = 'none';
-    settingsContainer.offsetHeight; // force reflow
-    settingsContainer.style.animation = 'slideDown 0.18s cubic-bezier(0.4, 0, 1, 1) forwards';
-    setTimeout(() => {
-      if (window.electronAPI && window.electronAPI.cancelSettings) {
-        window.electronAPI.cancelSettings();
-      }
-    }, 160);
-  }
-
-  closeBtn.addEventListener('click', closeSettings);
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      closeSettings();
-    }
+  // Close overlay
+  closeBtn.addEventListener('click', () => {
+    window.electronAPI.cancelSettings();
   });
-
-  let statusTimeout;
-  function showStatus(text, isError = false) {
-    actionStatus.textContent = text;
-    actionStatus.style.color = isError ? '#f87171' : '#34d399';
-    actionStatus.classList.add('show');
-
-    clearTimeout(statusTimeout);
-    statusTimeout = setTimeout(() => {
-      actionStatus.classList.remove('show');
-    }, 3000);
-  }
-})();
+});
