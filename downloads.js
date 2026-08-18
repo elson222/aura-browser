@@ -265,8 +265,8 @@ function clearDetectedMedia(pageUrl) {
 }
 
 /**
- * Setup download tracking on a session
- * @param {Electron.Session} session
+ * Sanitize filename to prevent directory traversal and invalid characters
+ */
 function sanitizeFilename(filename) {
   if (!filename || typeof filename !== 'string') return 'download';
   const base = path.basename(filename);
@@ -467,5 +467,6 @@ module.exports = {
   retryDownload,
   getPublicDownloads,
   isYouTubeVideo,
-  formatSize
+  formatSize,
+  sanitizeFilename
 };

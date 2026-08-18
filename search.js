@@ -1,5 +1,5 @@
-const searchInput = document.getElementById('search-input');
-const suggestionsList = document.getElementById('suggestions-list');
+const searchInput = typeof document !== 'undefined' ? document.getElementById('search-input') : null;
+const suggestionsList = typeof document !== 'undefined' ? document.getElementById('suggestions-list') : null;
 
 let historyList = [];
 let bookmarksList = [];
@@ -31,23 +31,31 @@ const searchEngines = [
   { prefix: '!gh', name: 'GitHub', icon: svgIcons.github }
 ];
 
-window.addEventListener('DOMContentLoaded', () => {
-  searchInput.focus();
-});
+if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+  window.addEventListener('DOMContentLoaded', () => {
+    if (searchInput) searchInput.focus();
+  });
 
-window.electronAPI.onFocusSearch((data) => {
-  historyList = data.history || [];
-  bookmarksList = data.bookmarks || [];
-  searchInput.value = '';
-  selectedIndex = -1;
-  renderSuggestions();
-  searchInput.focus();
-});
+  if (window.electronAPI && window.electronAPI.onFocusSearch) {
+    window.electronAPI.onFocusSearch((data) => {
+      historyList = data.history || [];
+      bookmarksList = data.bookmarks || [];
+      if (searchInput) {
+        searchInput.value = '';
+        searchInput.focus();
+      }
+      selectedIndex = -1;
+      renderSuggestions();
+    });
+  }
 
-searchInput.addEventListener('input', () => {
-  selectedIndex = -1;
-  renderSuggestions();
-});
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      selectedIndex = -1;
+      renderSuggestions();
+    });
+  }
+}
 
 function evaluateMathExpression(str) {
   if (!str || typeof str !== 'string') return null;
@@ -252,31 +260,33 @@ function renderSuggestions() {
   }
 }
 
-searchInput.addEventListener('keydown', (event) => {
-  const items = suggestionsList.querySelectorAll('.suggestion-item');
+if (searchInput) {
+  searchInput.addEventListener('keydown', (event) => {
+    const items = suggestionsList ? suggestionsList.querySelectorAll('.suggestion-item') : [];
 
-  if (event.key === 'ArrowDown') {
-    event.preventDefault();
-    if (suggestionItems.length === 0) return;
-    selectedIndex = (selectedIndex + 1) % suggestionItems.length;
-    updateSelection(items);
-  } else if (event.key === 'ArrowUp') {
-    event.preventDefault();
-    if (suggestionItems.length === 0) return;
-    selectedIndex = (selectedIndex - 1 + suggestionItems.length) % suggestionItems.length;
-    updateSelection(items);
-  } else if (event.key === 'Enter') {
-    event.preventDefault();
-    if (selectedIndex >= 0 && selectedIndex < suggestionItems.length) {
-      window.electronAPI.performNavigation(suggestionItems[selectedIndex].url);
-    } else {
-      const value = searchInput.value.trim();
-      window.electronAPI.performNavigation(value);
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      if (suggestionItems.length === 0) return;
+      selectedIndex = (selectedIndex + 1) % suggestionItems.length;
+      updateSelection(items);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (suggestionItems.length === 0) return;
+      selectedIndex = (selectedIndex - 1 + suggestionItems.length) % suggestionItems.length;
+      updateSelection(items);
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      if (selectedIndex >= 0 && selectedIndex < suggestionItems.length) {
+        if (window.electronAPI) window.electronAPI.performNavigation(suggestionItems[selectedIndex].url);
+      } else {
+        const value = searchInput.value.trim();
+        if (window.electronAPI) window.electronAPI.performNavigation(value);
+      }
+    } else if (event.key === 'Escape') {
+      if (window.electronAPI) window.electronAPI.cancelSearch();
     }
-  } else if (event.key === 'Escape') {
-    window.electronAPI.cancelSearch();
-  }
-});
+  });
+}
 
 function updateSelection(items) {
   items.forEach((item, index) => {
@@ -284,10 +294,17 @@ function updateSelection(items) {
       item.classList.add('selected');
       item.scrollIntoView({ block: 'nearest' });
       if (suggestionItems[index].type === 'engine' && !suggestionItems[index].url.includes(' ')) {
-        searchInput.value = suggestionItems[index].url + ' ';
+        if (searchInput) searchInput.value = suggestionItems[index].url + ' ';
       }
     } else {
       item.classList.remove('selected');
     }
   });
+}
+
+if (typeof module !== 'undefined') {
+  module.exports = {
+    evaluateMathExpression,
+    safeEvaluateMath: evaluateMathExpression
+  };
 }

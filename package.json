@@ -9,6 +9,7 @@
   },
   "scripts": {
     "start": "electron .",
+    "test": "electron test_suite.js",
     "dist": "electron-builder --win"
   },
   "keywords": [
