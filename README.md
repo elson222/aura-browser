@@ -28,12 +28,14 @@ Navigation, tab management, and extensions are always available on-demand via sm
 - Supports unpacked folders and `.crx` / `.zip` packages.
 - Isolated, sandboxed execution with zero privileged Electron access.
 
-### 🛡️ Built-in Privacy & Ad Blocker
-- **Network Level Blocking**: Automatically blocks ad networks, trackers, and telemetry scripts before sockets open.
-- **Pure Native Web Rendering**: Zero destructive stylesheet overrides or color inversion. Websites render naturally as designed.
+### 🛡️ Native Built-in uBlock Origin & Privacy Shield
+- **Built-in uBlock Origin**: Ships natively with official **uBlock Origin** engine preloaded into Chromium. Ads, popups, and tracker scripts are filtered out-of-the-box with zero setup required.
+- **Hardware-Accelerated Video Playback**: Direct GPU video decoding and rasterization flags for 4K/60FPS YouTube and media streaming with near-zero CPU load.
+- **Pure Native Web Rendering**: Zero destructive stylesheet overrides. Websites render naturally as designed.
 - **Encrypted DNS & Privacy Shield**: Integrated Cloudflare & Google DNS-over-HTTPS (DoH) resolution.
 
-### 🔍 Spotlight Omnibox & Search HUD (`Ctrl + L` / `Ctrl + T`)
+### 🔍 Spotlight Omnibox & Search HUD (`Ctrl + L` / `Ctrl + T` / `Ctrl + H`)
+- **Browsing History Search (`Ctrl + H`)**: Instant search HUD displaying your recently visited pages with titles and timestamps.
 - **Instant Calculator**: Type math expressions (e.g. `128 * 4` or `(50 + 25) / 5`) for instant evaluated results.
 - **Search Bangs**: Search sites directly with shortcuts:
   - `!g query` — Google Search
@@ -44,8 +46,10 @@ Navigation, tab management, and extensions are always available on-demand via sm
   - `!gh query` — GitHub
 - **Bookmarks & History Search**: Instant fuzzy suggestions across your saved pages.
 
-### ⚡ 0% Idle CPU Mouse Gestures
-- Hold the Right Mouse Button and glide:
+### ⚡ Trackpad Gestures & Mouse Side Buttons
+- **Two-Finger Trackpad Swipe**: Swipe right on your precision touchpad to go Back, swipe left to go Forward.
+- **Mouse Side Buttons**: Native button 3 (Back) and button 4 (Forward) support.
+- **Right-Click Mouse Gestures**: Hold the Right Mouse Button and glide:
   - **Left (`L`)** — Back
   - **Right (`R`)** — Forward
   - **Up (`U`)** — Scroll to top
@@ -69,6 +73,7 @@ Navigation, tab management, and extensions are always available on-demand via sm
 | **`Ctrl + 1` .. `Ctrl + 8`** | Jump Directly to Tab 1–8 |
 | **`Ctrl + 9`** | Jump to Last Tab |
 | **`Ctrl + L`** | Open Search Omnibox HUD |
+| **`Ctrl + H`** | Open Browsing History Search |
 | **`Ctrl + E`** | Open Extensions Manager |
 | **`Ctrl + ,`** | Open Browser Settings |
 | **`Ctrl + J`** | Open Downloads Manager |
@@ -80,32 +85,26 @@ Navigation, tab management, and extensions are always available on-demand via sm
 
 ---
 
-## Installation & Downloads
+## 👨‍💻 Author & Contact
 
-### Windows Installers
-Download the latest binaries directly from **[GitHub Releases](https://github.com/elson222/aura-browser/releases)**:
-1. **`Aura.Browser.Setup.2.1.0.exe`** — Standard Windows installer with desktop and start menu shortcuts.
-2. **`Aura.Browser.2.1.0.exe`** — Standalone portable executable (no installation required).
+**Aura Browser** is created and actively maintained by:
 
-### Building From Source
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/elson222/aura-browser.git
-cd aura-browser
-
-# 2. Install dependencies
-npm install
-
-# 3. Start development build
-npm start
-
-# 4. Compile distribution binaries
-npm run dist
-```
+* **Author**: Cornel Media ([@elson222](https://github.com/elson222))
+* **Email**: [info@cornel.media](mailto:info@cornel.media)
+* **GitHub**: [https://github.com/elson222](https://github.com/elson222)
+* **Repository**: [https://github.com/elson222/aura-browser](https://github.com/elson222/aura-browser)
 
 ---
 
-## License
+## 🤝 Contributing (Open Source)
 
-Distributed under the MIT License. See `LICENSE` for details.
+Contributions, pull requests, and feature suggestions are warmly welcomed! Aura is open source under the MIT license so the community can help make it the best fullscreen browser in the world.
+
+Please read our [Contributing Guide](CONTRIBUTING.md) to get started with local development and submitting PRs.
+
+---
+
+## 📜 License
+
+Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for details.
+Copyright (c) 2026 Cornel Media (elson222) <info@cornel.media>.

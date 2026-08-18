@@ -817,17 +817,30 @@ function removeExtension(extensionId) {
 
 function loadSavedExtensions() {
   try {
-    if (!fs.existsSync(extensionsDir)) return;
-    const dirs = fs.readdirSync(extensionsDir);
-    for (const dir of dirs) {
-      const extPath = path.join(extensionsDir, dir);
-      if (fs.existsSync(extPath) && fs.statSync(extPath).isDirectory()) {
-        const manifestPath = path.join(extPath, 'manifest.json');
-        if (fs.existsSync(manifestPath)) {
-          try {
-            session.defaultSession.loadExtension(extPath, { allowFileAccess: false });
-          } catch (err) {
-            console.error(`Failed to load extension ${dir}:`, err.message);
+    // 1. Load native bundled extensions (uBlock Origin built-in)
+    const bundledUblock = path.join(__dirname, 'default-extensions', 'ublock-origin');
+    if (fs.existsSync(path.join(bundledUblock, 'manifest.json'))) {
+      try {
+        session.defaultSession.loadExtension(bundledUblock, { allowFileAccess: false });
+        console.log('Native uBlock Origin loaded into session.');
+      } catch (err) {
+        console.error('Failed to load bundled uBlock Origin:', err.message);
+      }
+    }
+
+    // 2. Load user installed extensions
+    if (fs.existsSync(extensionsDir)) {
+      const dirs = fs.readdirSync(extensionsDir);
+      for (const dir of dirs) {
+        const extPath = path.join(extensionsDir, dir);
+        if (fs.existsSync(extPath) && fs.statSync(extPath).isDirectory()) {
+          const manifestPath = path.join(extPath, 'manifest.json');
+          if (fs.existsSync(manifestPath)) {
+            try {
+              session.defaultSession.loadExtension(extPath, { allowFileAccess: false });
+            } catch (err) {
+              console.error(`Failed to load extension ${dir}:`, err.message);
+            }
           }
         }
       }

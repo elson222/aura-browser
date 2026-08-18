@@ -19,9 +19,15 @@
     "minimal",
     "privacy",
     "tabs",
-    "extensions"
+    "extensions",
+    "ublock-origin",
+    "open-source"
   ],
-  "author": "Elson",
+  "author": {
+    "name": "Cornel Media (elson222)",
+    "email": "info@cornel.media",
+    "url": "https://github.com/elson222"
+  },
   "license": "MIT",
   "dependencies": {
     "unzipper": "^0.12.3"
