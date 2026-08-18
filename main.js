@@ -955,7 +955,6 @@ async function toggleDarkMode() {
   nativeTheme.themeSource = darkModeEnabled ? 'dark' : 'light';
   saveUserData();
   if (mainWindow) {
-    darkModeCssKey = await darkMode.injectDarkMode(mainWindow.webContents, darkModeEnabled, darkThemeStyle);
     mainWindow.webContents.send('settings-changed', { darkModeEnabled });
   }
   return darkModeEnabled;

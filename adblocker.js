@@ -115,33 +115,16 @@ const adUrlPatterns = [
 ];
 
 const cosmeticCss = `
-  /* Aura Ultra-Clean Cosmetic Ad Elimination Rules */
-  [id^="google_ads_"],
-  [id^="div-gpt-ad"],
-  [id*="ad-banner"],
-  [id*="ad_container"],
-  [id*="advertisement"],
-  [class*="ad-container"],
-  [class*="ad_wrapper"],
-  [class*="advertisement"],
-  [class*="adsbox"],
-  [class*="ad-banner"],
-  [class*="ad-slot"],
-  [class*="ad_slot"],
-  [class*="sponsored-post"],
-  [class*="SponsoredContent"],
-  [data-ad-unit],
-  [data-ad-slot],
-  [data-ad-client],
-  [aria-label="Advertisements"],
-  [aria-label="advertisement"],
-  [aria-label="sponsored"],
+  /* Clean Non-Intrusive Ad Hiding Rules */
   ins.adsbygoogle,
   .trc_related_container,
   .taboola-placeholder,
   .outbrain-ad,
   .native-ad-unit,
-  .commercial-unit {
+  .commercial-unit,
+  [data-ad-unit],
+  [data-ad-slot],
+  [data-ad-client] {
     display: none !important;
     visibility: hidden !important;
     height: 0 !important;
@@ -158,7 +141,6 @@ let blockedCount = 0;
 function isAdUrl(url) {
   if (!url || typeof url !== 'string') return false;
   
-  // Whitelist internal & local schemes
   if (url.startsWith('file:') || url.startsWith('devtools:') || url.startsWith('chrome-extension:')) {
     return false;
   }
@@ -167,21 +149,18 @@ function isAdUrl(url) {
     const parsed = new URL(url);
     const hostname = parsed.hostname.toLowerCase();
 
-    // Check exact or subdomain match against ad domains
     for (const domain of adDomains) {
       if (hostname === domain || hostname.endsWith('.' + domain)) {
         return true;
       }
     }
 
-    // Check URL patterns
     for (const pattern of adUrlPatterns) {
       if (pattern.test(url)) {
         return true;
       }
     }
   } catch (err) {
-    // If URL parsing fails, check plain string
     for (const domain of adDomains) {
       if (url.includes(domain)) return true;
     }
@@ -190,12 +169,6 @@ function isAdUrl(url) {
   return false;
 }
 
-/**
- * Setup WebRequest ad filtering on an Electron session
- * @param {Electron.Session} session 
- * @param {() => boolean} isEnabled 
- * @param {(count: number, url: string) => void} [onBlock] 
- */
 function setupAdBlocker(session, isEnabled, onBlock) {
   session.webRequest.onBeforeRequest({ urls: ['*://*/*'] }, (details, callback) => {
     if (!isEnabled()) {
@@ -212,11 +185,6 @@ function setupAdBlocker(session, isEnabled, onBlock) {
   });
 }
 
-/**
- * Inject cosmetic ad hiding CSS into a WebContents instance
- * @param {Electron.WebContents} webContents 
- * @param {boolean} enabled 
- */
 async function injectCosmeticFilters(webContents, enabled) {
   if (!enabled || !webContents || webContents.isDestroyed()) return null;
   try {
