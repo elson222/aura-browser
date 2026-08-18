@@ -5,6 +5,7 @@ let historyList = [];
 let bookmarksList = [];
 let suggestionItems = [];
 let selectedIndex = -1;
+let currentMode = 'search';
 
 const svgIcons = {
   google: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
@@ -40,8 +41,10 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     window.electronAPI.onFocusSearch((data) => {
       historyList = data.history || [];
       bookmarksList = data.bookmarks || [];
+      currentMode = data.mode || 'search';
       if (searchInput) {
         searchInput.value = '';
+        searchInput.placeholder = currentMode === 'history' ? 'Search browsing history...' : 'Search with Google or type a URL...';
         searchInput.focus();
       }
       selectedIndex = -1;
@@ -205,29 +208,40 @@ function renderSuggestions() {
       }
     });
   } else if (!query) {
-    bookmarksList.forEach(bookmark => {
-      suggestionItems.push({
-        title: bookmark.title,
-        url: bookmark.url,
-        type: 'bookmark',
-        icon: svgIcons.bookmark
-      });
-    });
-
-    historyList.slice(0, 10).forEach(history => {
-      const alreadyAdded = suggestionItems.some(item => item.url === history.url);
-      if (!alreadyAdded) {
+    if (currentMode === 'history') {
+      historyList.slice(0, 25).forEach(history => {
         suggestionItems.push({
-          title: history.title,
+          title: history.title || 'Visited Page',
           url: history.url,
           type: 'history',
           icon: svgIcons.history
         });
-      }
-    });
+      });
+    } else {
+      bookmarksList.forEach(bookmark => {
+        suggestionItems.push({
+          title: bookmark.title,
+          url: bookmark.url,
+          type: 'bookmark',
+          icon: svgIcons.bookmark
+        });
+      });
+
+      historyList.slice(0, 10).forEach(history => {
+        const alreadyAdded = suggestionItems.some(item => item.url === history.url);
+        if (!alreadyAdded) {
+          suggestionItems.push({
+            title: history.title,
+            url: history.url,
+            type: 'history',
+            icon: svgIcons.history
+          });
+        }
+      });
+    }
   }
 
-  suggestionItems = suggestionItems.slice(0, 12);
+  suggestionItems = suggestionItems.slice(0, 25);
 
   if (suggestionItems.length > 0) {
     suggestionsList.classList.add('show');

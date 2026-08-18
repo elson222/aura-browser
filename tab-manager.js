@@ -1,5 +1,5 @@
 // Aura Multi-Tab Management Engine (Zen & Chrome Style)
-const { BrowserView, app } = require('electron');
+const { BrowserView, Menu, clipboard, app } = require('electron');
 const path = require('path');
 
 class TabManager {
@@ -130,6 +130,98 @@ class TabManager {
       this.broadcastTabs();
     });
 
+    // Native Right-Click Context Menu
+    wc.on('context-menu', (event, params) => {
+      event.preventDefault();
+      const menuTemplate = [];
+
+      if (params.linkURL) {
+        menuTemplate.push(
+          {
+            label: 'Open Link in New Tab',
+            click: () => this.createTab(params.linkURL)
+          },
+          {
+            label: 'Copy Link Address',
+            click: () => clipboard.writeText(params.linkURL)
+          },
+          { type: 'separator' }
+        );
+      }
+
+      if (params.hasImageContents || params.mediaType === 'image') {
+        if (params.srcURL) {
+          menuTemplate.push(
+            {
+              label: 'Open Image in New Tab',
+              click: () => this.createTab(params.srcURL)
+            },
+            {
+              label: 'Save Image As...',
+              click: () => wc.downloadURL(params.srcURL)
+            },
+            {
+              label: 'Copy Image Address',
+              click: () => clipboard.writeText(params.srcURL)
+            },
+            { type: 'separator' }
+          );
+        }
+      }
+
+      if (params.selectionText) {
+        menuTemplate.push(
+          {
+            label: `Search for "${params.selectionText.length > 25 ? params.selectionText.substring(0, 22) + '...' : params.selectionText}"`,
+            click: () => this.createTab('https://www.google.com/search?q=' + encodeURIComponent(params.selectionText))
+          },
+          {
+            label: 'Copy',
+            role: 'copy'
+          },
+          { type: 'separator' }
+        );
+      }
+
+      if (params.isEditable) {
+        menuTemplate.push(
+          { label: 'Undo', role: 'undo' },
+          { label: 'Redo', role: 'redo' },
+          { type: 'separator' },
+          { label: 'Cut', role: 'cut' },
+          { label: 'Copy', role: 'copy' },
+          { label: 'Paste', role: 'paste' },
+          { label: 'Select All', role: 'selectAll' },
+          { type: 'separator' }
+        );
+      }
+
+      menuTemplate.push(
+        {
+          label: 'Back',
+          enabled: wc.canGoBack(),
+          click: () => this.goBackActiveTab()
+        },
+        {
+          label: 'Forward',
+          enabled: wc.canGoForward(),
+          click: () => this.goForwardActiveTab()
+        },
+        {
+          label: 'Reload',
+          click: () => this.reloadActiveTab()
+        },
+        { type: 'separator' },
+        {
+          label: 'Inspect Element',
+          click: () => wc.inspectElement(params.x, params.y)
+        }
+      );
+
+      const menu = Menu.buildFromTemplate(menuTemplate);
+      menu.popup({ window: this.mainWindow });
+    });
+
     // Keyboard Shortcuts within View
     wc.on('before-input-event', (event, input) => {
       if (input.type !== 'keyDown') return;
@@ -203,6 +295,16 @@ class TabManager {
       if (alt && !ctrl && input.key === 'ArrowRight') {
         event.preventDefault();
         this.goForwardActiveTab();
+        return;
+      }
+
+      // Ctrl + H -> History Search
+      if (ctrl && !shift && key === 'h') {
+        event.preventDefault();
+        if (this.mainWindow) {
+          const { triggerGlobalAction } = require('./main');
+          if (triggerGlobalAction) triggerGlobalAction('history');
+        }
         return;
       }
 

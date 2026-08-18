@@ -447,10 +447,21 @@ function initZenFeatures(ipcRenderer) {
     }
   `;
 
-  document.head.appendChild(style);
-  document.body.appendChild(tab);
-  document.body.appendChild(dock);
-  document.body.appendChild(panelDrawer);
+  function mountZenUI() {
+    if (!document.body || !document.head) return false;
+    if (document.getElementById('aura-zen-dock')) return true;
+
+    document.head.appendChild(style);
+    document.body.appendChild(tab);
+    document.body.appendChild(dock);
+    document.body.appendChild(panelDrawer);
+    return true;
+  }
+
+  if (!mountZenUI()) {
+    document.addEventListener('DOMContentLoaded', mountZenUI);
+    window.addEventListener('load', mountZenUI);
+  }
 
   let isDrawerOpen = false;
 

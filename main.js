@@ -10,6 +10,14 @@ const adblocker = require('./adblocker');
 const crxLoader = require('./crx-loader');
 const { TabManager } = require('./tab-manager');
 
+// Hardware GPU Acceleration & High-Performance Video Decoding Flags
+app.commandLine.appendSwitch('enable-gpu-rasterization');
+app.commandLine.appendSwitch('enable-zero-copy');
+app.commandLine.appendSwitch('enable-accelerated-video-decode');
+app.commandLine.appendSwitch('enable-accelerated-2d-canvas');
+app.commandLine.appendSwitch('ignore-gpu-blocklist');
+app.commandLine.appendSwitch('enable-features', 'VaapiVideoDecoder,VaapiVideoEncoder,CanvasOopRasterization,UseSkiaRenderer');
+
 let tabManager = null;
 
 // User Preferences State
@@ -616,13 +624,14 @@ function createSearchWindow() {
   });
 }
 
-function showSearchOverlay() {
+function showSearchOverlay(mode = 'search') {
   if (!searchWindow || searchWindow.isDestroyed()) {
     createSearchWindow();
   }
   searchWindow.webContents.send('focus-search', {
     history: userData.history,
-    bookmarks: userData.bookmarks
+    bookmarks: userData.bookmarks,
+    mode: mode
   });
   searchWindow.show();
   searchWindow.focus();
@@ -1430,7 +1439,8 @@ ipcMain.on('retry-download', (event, id) => {
 
 // Global Trigger Actions
 function triggerGlobalAction(action) {
-  if (action === 'search') showSearchOverlay();
+  if (action === 'search') showSearchOverlay('search');
+  else if (action === 'history') showSearchOverlay('history');
   else if (action === 'downloads') showDownloadsManager();
   else if (action === 'extensions') showExtensionsOverlay();
   else if (action === 'settings') showSettingsOverlay();
@@ -1438,6 +1448,8 @@ function triggerGlobalAction(action) {
   else if (action === 'close-tab') { if (tabManager) tabManager.closeTab(tabManager.activeTabId); }
   else if (action === 'restore-tab') { if (tabManager) tabManager.restoreClosedTab(); }
   else if (action === 'reload') { if (tabManager) tabManager.reloadActiveTab(); }
+  else if (action === 'go-back') { if (tabManager) tabManager.goBackActiveTab(); }
+  else if (action === 'go-forward') { if (tabManager) tabManager.goForwardActiveTab(); }
   else if (action === 'home') { if (tabManager) tabManager.navigateActiveTab('homepage'); }
   else if (action === 'toggle-adblock') {
     adBlockerEnabled = !adBlockerEnabled;
