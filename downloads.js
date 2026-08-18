@@ -15,7 +15,9 @@ const { URL } = require('url');
 let downloads = [];
 let detectedMedia = {};
 let downloadIdCounter = 0;
-const downloadsDir = app.getPath('downloads');
+function getDownloadsDir() {
+  return (app && typeof app.getPath === 'function') ? app.getPath('downloads') : path.join(require('os').homedir(), 'Downloads');
+}
 
 // Media MIME types to detect
 const MEDIA_TYPES = {
@@ -287,7 +289,7 @@ function setupDownloadTracking(session, onUpdate) {
     const id = `dl-${++downloadIdCounter}`;
     const rawFilename = item.getFilename();
     const safeFilename = sanitizeFilename(rawFilename);
-    const resolvedDir = path.resolve(downloadsDir);
+    const resolvedDir = path.resolve(getDownloadsDir());
     let savePath = path.join(resolvedDir, safeFilename);
 
     // Verify path stays within downloads directory

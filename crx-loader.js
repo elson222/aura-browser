@@ -2,10 +2,10 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const http = require('http');
-const unzipper = require('unzipper');
+const zlib = require('zlib');
 
 /**
- * Extracts a .crx or .zip buffer into a target directory
+ * Pure Node.js zero-dependency ZIP / CRX Extractor
  * @param {Buffer|string} crxSource 
  * @param {string} targetDir 
  */
@@ -16,22 +16,63 @@ async function extractCrx(crxSource, targetDir) {
     fs.mkdirSync(targetDir, { recursive: true });
   }
 
-  let zipOffset = 0;
-  if (buffer.length > 4 && buffer.toString('utf8', 0, 4) === 'Cr24') {
-    const pkIndex = buffer.indexOf(Buffer.from([0x50, 0x4B, 0x03, 0x04]));
-    if (pkIndex !== -1) {
-      zipOffset = pkIndex;
-    } else {
-      throw new Error('Invalid CRX format: Zip payload not found');
+  // Find ZIP local file header signature 0x04034b50 (PK\x03\x04)
+  let offset = 0;
+  while (offset < buffer.length - 4) {
+    if (buffer[offset] === 0x50 && buffer[offset + 1] === 0x4B &&
+        buffer[offset + 2] === 0x03 && buffer[offset + 3] === 0x04) {
+      break;
     }
-  } else {
-    const pkIndex = buffer.indexOf(Buffer.from([0x50, 0x4B, 0x03, 0x04]));
-    if (pkIndex !== -1) zipOffset = pkIndex;
+    offset++;
   }
 
-  const zipBuffer = buffer.subarray(zipOffset);
-  const directory = await unzipper.Open.buffer(zipBuffer);
-  await directory.extract({ path: targetDir });
+  if (offset >= buffer.length - 4) {
+    throw new Error('Invalid CRX/ZIP: No ZIP local file header found');
+  }
+
+  let p = offset;
+  while (p < buffer.length - 30) {
+    const sig = buffer.readUInt32LE(p);
+    if (sig !== 0x04034b50) break; // Not a local file header
+
+    const method = buffer.readUInt16LE(p + 8);
+    const compressedSize = buffer.readUInt32LE(p + 18);
+    const uncompressedSize = buffer.readUInt32LE(p + 22);
+    const fileNameLen = buffer.readUInt16LE(p + 26);
+    const extraLen = buffer.readUInt16LE(p + 28);
+
+    const fileName = buffer.toString('utf8', p + 30, p + 30 + fileNameLen);
+    const dataOffset = p + 30 + fileNameLen + extraLen;
+    const compressedData = buffer.subarray(dataOffset, dataOffset + compressedSize);
+
+    // Prevent directory traversal attacks
+    const safePath = path.normalize(fileName).replace(/^(\.\.[\/\\])+/, '');
+    const fullPath = path.join(targetDir, safePath);
+
+    if (fileName.endsWith('/') || fileName.endsWith('\\')) {
+      if (!fs.existsSync(fullPath)) fs.mkdirSync(fullPath, { recursive: true });
+    } else {
+      const parentDir = path.dirname(fullPath);
+      if (!fs.existsSync(parentDir)) fs.mkdirSync(parentDir, { recursive: true });
+
+      let uncompressedData;
+      if (method === 0) {
+        uncompressedData = compressedData;
+      } else if (method === 8) {
+        uncompressedData = zlib.inflateRawSync(compressedData);
+      } else {
+        try {
+          uncompressedData = zlib.inflateRawSync(compressedData);
+        } catch (e) {
+          uncompressedData = compressedData;
+        }
+      }
+
+      fs.writeFileSync(fullPath, uncompressedData);
+    }
+
+    p = dataOffset + compressedSize;
+  }
 }
 
 /**

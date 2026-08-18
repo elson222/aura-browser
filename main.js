@@ -11,12 +11,14 @@ const crxLoader = require('./crx-loader');
 const { TabManager } = require('./tab-manager');
 
 // Hardware GPU Acceleration & High-Performance Video Decoding Flags
-app.commandLine.appendSwitch('enable-gpu-rasterization');
-app.commandLine.appendSwitch('enable-zero-copy');
-app.commandLine.appendSwitch('enable-accelerated-video-decode');
-app.commandLine.appendSwitch('enable-accelerated-2d-canvas');
-app.commandLine.appendSwitch('ignore-gpu-blocklist');
-app.commandLine.appendSwitch('enable-features', 'VaapiVideoDecoder,VaapiVideoEncoder,CanvasOopRasterization,UseSkiaRenderer');
+if (app && app.commandLine) {
+  app.commandLine.appendSwitch('enable-gpu-rasterization');
+  app.commandLine.appendSwitch('enable-zero-copy');
+  app.commandLine.appendSwitch('enable-accelerated-video-decode');
+  app.commandLine.appendSwitch('enable-accelerated-2d-canvas');
+  app.commandLine.appendSwitch('ignore-gpu-blocklist');
+  app.commandLine.appendSwitch('enable-features', 'VaapiVideoDecoder,VaapiVideoEncoder,CanvasOopRasterization,UseSkiaRenderer');
+}
 
 let tabManager = null;
 
@@ -36,8 +38,11 @@ let lastEscTimestamp = 0;
 const DOUBLE_ESC_THRESHOLD_MS = 400;
 
 // User Data Path
-const userDataPath = path.join(app.getPath('userData'), 'userData.json');
-const extensionsDir = path.join(app.getPath('userData'), 'extensions');
+function getUserDataDir() {
+  return (app && typeof app.getPath === 'function') ? app.getPath('userData') : path.join(require('os').homedir(), '.aura-browser');
+}
+const userDataPath = path.join(getUserDataDir(), 'userData.json');
+const extensionsDir = path.join(getUserDataDir(), 'extensions');
 
 let userData = {
   history: [],
@@ -58,11 +63,13 @@ let userData = {
 };
 
 // Ensure extensions directory exists
-if (!fs.existsSync(extensionsDir)) {
-  fs.mkdirSync(extensionsDir, { recursive: true });
-}
+try {
+  if (!fs.existsSync(extensionsDir)) {
+    fs.mkdirSync(extensionsDir, { recursive: true });
+  }
+} catch (e) {}
 
-const userDataBackupPath = path.join(app.getPath('userData'), 'userData.json.bak');
+const userDataBackupPath = path.join(getUserDataDir(), 'userData.json.bak');
 
 function loadUserData() {
   try {
