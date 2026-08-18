@@ -186,6 +186,9 @@ function createMainWindow() {
   tabManager = new TabManager(mainWindow, adblocker, darkMode);
   tabManager.createTab();
 
+  mainWindow.show();
+  mainWindow.focus();
+
   mainWindow.on('resize', () => {
     if (tabManager && tabManager.getActiveTab()) {
       const bounds = tabManager.getBounds();
