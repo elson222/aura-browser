@@ -826,6 +826,11 @@ function removeExtension(extensionId) {
 }
 
 function getBundledExtensionPath(relPath) {
+  if (process.resourcesPath) {
+    const inResApp = path.join(process.resourcesPath, 'app', relPath);
+    if (fs.existsSync(path.join(inResApp, 'manifest.json'))) return inResApp;
+  }
+
   const normalPath = path.join(__dirname, relPath);
   if (fs.existsSync(path.join(normalPath, 'manifest.json'))) return normalPath;
 
