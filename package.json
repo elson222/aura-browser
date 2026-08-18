@@ -1,15 +1,27 @@
 {
-  "name": "fullscreen-browser",
+  "name": "aura-browser",
   "version": "2.1.0",
-  "description": "A completely fullscreen borderless browser application with an overlay search bar.",
+  "description": "An immersive, distraction-free, completely fullscreen desktop browser with multi-tab vertical sidebar and Chrome extension support.",
   "main": "main.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/elson222/aura-browser.git"
+  },
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder --win"
   },
-  "keywords": [],
-  "author": "Aura",
-  "license": "ISC",
+  "keywords": [
+    "browser",
+    "fullscreen",
+    "zen",
+    "minimal",
+    "privacy",
+    "tabs",
+    "extensions"
+  ],
+  "author": "Elson",
+  "license": "MIT",
   "dependencies": {
     "unzipper": "^0.12.3"
   },
@@ -19,7 +31,7 @@
   },
   "build": {
     "appId": "com.aura.browser",
-    "productName": "AuraBrowser",
+    "productName": "Aura Browser",
     "icon": "assets/icon.ico",
     "win": {
       "icon": "assets/icon.ico",

@@ -54,12 +54,24 @@ if (!fs.existsSync(extensionsDir)) {
   fs.mkdirSync(extensionsDir, { recursive: true });
 }
 
+const userDataBackupPath = path.join(app.getPath('userData'), 'userData.json.bak');
+
 function loadUserData() {
   try {
     if (fs.existsSync(userDataPath)) {
-      const content = fs.readFileSync(userDataPath, 'utf8');
-      const loaded = JSON.parse(content);
-      userData = { ...userData, ...loaded };
+      try {
+        const content = fs.readFileSync(userDataPath, 'utf8');
+        const loaded = JSON.parse(content);
+        userData = { ...userData, ...loaded };
+      } catch (parseErr) {
+        console.warn("userData.json corrupted, attempting restore from backup...", parseErr);
+        if (fs.existsSync(userDataBackupPath)) {
+          const backupContent = fs.readFileSync(userDataBackupPath, 'utf8');
+          const loadedBackup = JSON.parse(backupContent);
+          userData = { ...userData, ...loadedBackup };
+        }
+      }
+
       darkModeEnabled = userData.darkModeEnabled === true;
       adBlockerEnabled = userData.adBlockerEnabled !== false;
       autoPipEnabled = userData.autoPipEnabled !== false;
@@ -68,7 +80,7 @@ function loadUserData() {
       vpnEnabled = userData.vpnEnabled === true;
       darkThemeStyle = userData.darkThemeStyle || 'black';
     } else {
-      saveUserData();
+      saveUserData(true);
     }
   } catch (err) {
     console.error("Failed to load user data:", err);
@@ -88,9 +100,21 @@ function saveUserData(immediate = false) {
       userData.mouseGesturesEnabled = mouseGesturesEnabled;
       userData.vpnEnabled = vpnEnabled;
       userData.darkThemeStyle = darkThemeStyle;
-      await fs.promises.writeFile(userDataPath, JSON.stringify(userData, null, 2), 'utf8');
+
+      const payload = JSON.stringify(userData, null, 2);
+      const tempPath = userDataPath + '.tmp';
+
+      // Atomic write: write to temp file then atomic rename
+      await fs.promises.writeFile(tempPath, payload, 'utf8');
+      
+      // Save backup copy
+      if (fs.existsSync(userDataPath)) {
+        await fs.promises.copyFile(userDataPath, userDataBackupPath).catch(() => {});
+      }
+
+      await fs.promises.rename(tempPath, userDataPath);
     } catch (err) {
-      console.error("Failed to save user data:", err);
+      console.error("Failed to atomically save user data:", err);
     }
   };
 
@@ -101,14 +125,22 @@ function saveUserData(immediate = false) {
   }
 }
 
-// Early settings load
+// Early settings load with corruption resilience
 try {
   if (fs.existsSync(userDataPath)) {
     const loaded = JSON.parse(fs.readFileSync(userDataPath, 'utf8'));
     darkModeEnabled = loaded.darkModeEnabled === true;
     adBlockerEnabled = loaded.adBlockerEnabled !== false;
   }
-} catch (e) {}
+} catch (e) {
+  try {
+    if (fs.existsSync(userDataBackupPath)) {
+      const loaded = JSON.parse(fs.readFileSync(userDataBackupPath, 'utf8'));
+      darkModeEnabled = loaded.darkModeEnabled === true;
+      adBlockerEnabled = loaded.adBlockerEnabled !== false;
+    }
+  } catch (e2) {}
+}
 
 // Window References
 let mainWindow = null;
