@@ -585,7 +585,9 @@ function createSearchWindow() {
 }
 
 function showSearchOverlay() {
-  if (!searchWindow) return;
+  if (!searchWindow || searchWindow.isDestroyed()) {
+    createSearchWindow();
+  }
   searchWindow.webContents.send('focus-search', {
     history: userData.history,
     bookmarks: userData.bookmarks
@@ -595,9 +597,10 @@ function showSearchOverlay() {
 }
 
 function hideSearchOverlay() {
-  if (!searchWindow) return;
-  searchWindow.hide();
-  if (mainWindow) mainWindow.focus();
+  if (searchWindow && !searchWindow.isDestroyed()) {
+    searchWindow.hide();
+  }
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.focus();
 }
 
 // ============================================================
@@ -645,7 +648,9 @@ function createExtensionsWindow() {
 }
 
 function showExtensionsOverlay() {
-  if (!extensionsWindow) return;
+  if (!extensionsWindow || extensionsWindow.isDestroyed()) {
+    createExtensionsWindow();
+  }
   const extensions = getInstalledExtensions();
   extensionsWindow.webContents.send('extensions-updated', extensions);
   extensionsWindow.show();
@@ -653,9 +658,10 @@ function showExtensionsOverlay() {
 }
 
 function hideExtensionsOverlay() {
-  if (!extensionsWindow) return;
-  extensionsWindow.hide();
-  if (mainWindow) mainWindow.focus();
+  if (extensionsWindow && !extensionsWindow.isDestroyed()) {
+    extensionsWindow.hide();
+  }
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.focus();
 }
 
 function getInstalledExtensions() {
@@ -842,7 +848,9 @@ function createSettingsWindow() {
 }
 
 function showSettingsOverlay() {
-  if (!settingsWindow) return;
+  if (!settingsWindow || settingsWindow.isDestroyed()) {
+    createSettingsWindow();
+  }
   settingsWindow.webContents.send('settings-loaded', {
     adBlockerEnabled,
     darkModeEnabled,
@@ -857,9 +865,10 @@ function showSettingsOverlay() {
 }
 
 function hideSettingsOverlay() {
-  if (!settingsWindow) return;
-  settingsWindow.hide();
-  if (mainWindow) mainWindow.focus();
+  if (settingsWindow && !settingsWindow.isDestroyed()) {
+    settingsWindow.hide();
+  }
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.focus();
 }
 
 // ============================================================
@@ -912,15 +921,18 @@ function createExitModalWindow() {
 }
 
 function showExitModal() {
-  if (!exitModalWindow) return;
+  if (!exitModalWindow || exitModalWindow.isDestroyed()) {
+    createExitModalWindow();
+  }
   exitModalWindow.show();
   exitModalWindow.focus();
 }
 
 function hideExitModal() {
-  if (!exitModalWindow) return;
-  exitModalWindow.hide();
-  if (mainWindow) mainWindow.focus();
+  if (exitModalWindow && !exitModalWindow.isDestroyed()) {
+    exitModalWindow.hide();
+  }
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.focus();
 }
 
 // ============================================================
@@ -1474,22 +1486,12 @@ app.whenReady().then(() => {
     vpnModule.startVPN().catch(err => console.error("VPN Startup error:", err));
   }
 
-  // Create windows
+  // Create primary browser window (overlays are loaded lazily on demand)
   createMainWindow();
-  createSearchWindow();
-  createExtensionsWindow();
-  createDownloadPopupWindow();
-  createSettingsWindow();
-  createExitModalWindow();
 
   app.on('activate', () => {
     if (BrowserWindow.getAll().length === 0) {
       createMainWindow();
-      createSearchWindow();
-      createExtensionsWindow();
-      createDownloadPopupWindow();
-      createSettingsWindow();
-      createExitModalWindow();
     }
   });
 });
