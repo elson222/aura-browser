@@ -151,55 +151,12 @@ function createMainWindow() {
     if (exitModalWindow) exitModalWindow.close();
   });
 
-  // Track History
-  mainWindow.webContents.on('did-navigate', (event, url) => {
-    if (url.startsWith('file://') || !saveHistoryEnabled) return;
-
-    setTimeout(() => {
-      if (!mainWindow) return;
-      const title = mainWindow.webContents.getTitle() || url;
-
-      userData.history = userData.history.filter(item => item.url !== url);
-      userData.history.unshift({ title, url, timestamp: Date.now() });
-
-      if (userData.history.length > 300) {
-        userData.history.pop();
-      }
-      saveUserData();
-    }, 1000);
+  // Global error safety handlers
+  process.on('uncaughtException', (err) => {
+    console.error('Safe caught exception:', err);
   });
-
-  // Inject dark mode & adblock cosmetic filters on DOM ready
-  mainWindow.webContents.on('dom-ready', async () => {
-    darkModeCssKey = await darkMode.injectDarkMode(mainWindow.webContents, darkModeEnabled, darkThemeStyle);
-    await applyAdBlockerCosmetics();
-
-    // Check for YouTube and detect media
-    const url = mainWindow.webContents.getURL();
-    if (downloadsModule.isYouTubeVideo(url)) {
-      const ytMedia = await downloadsModule.detectYouTubeMedia(mainWindow.webContents);
-      if (ytMedia.length > 0 && downloadPopupWindow) {
-        downloadPopupWindow.webContents.send('media-detected', ytMedia);
-        downloadPopupWindow.show();
-      }
-    }
-  });
-
-  // Re-inject on SPA in-page navigation
-  mainWindow.webContents.on('did-navigate-in-page', async () => {
-    darkModeCssKey = await darkMode.injectDarkMode(mainWindow.webContents, darkModeEnabled, darkThemeStyle);
-    await applyAdBlockerCosmetics();
-
-    const url = mainWindow.webContents.getURL();
-    if (downloadsModule.isYouTubeVideo(url)) {
-      setTimeout(async () => {
-        const ytMedia = await downloadsModule.detectYouTubeMedia(mainWindow.webContents);
-        if (ytMedia.length > 0 && downloadPopupWindow) {
-          downloadPopupWindow.webContents.send('media-detected', ytMedia);
-          downloadPopupWindow.show();
-        }
-      }, 1500);
-    }
+  process.on('unhandledRejection', (reason) => {
+    console.error('Safe caught rejection:', reason);
   });
 
   // ============================================================
