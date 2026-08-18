@@ -277,6 +277,15 @@ function isAdUrl(url) {
       }
     }
 
+    // YouTube ad streams & tracking
+    if (url.includes('youtube.com/api/stats/ads') ||
+        url.includes('youtube.com/pagead/') ||
+        url.includes('youtube.com/ptracking') ||
+        (url.includes('youtube.com/api/stats/qoe') && url.includes('adformat')) ||
+        (url.includes('googlevideo.com/videoplayback') && (url.includes('adformat') || url.includes('ctier=')))) {
+      return true;
+    }
+
     for (const pattern of adUrlPatterns) {
       if (pattern.test(url)) {
         return true;

@@ -88,3 +88,109 @@ if (typeof window !== 'undefined' && window === window.top) {
     }
   }, { passive: true });
 }
+
+// Native YouTube Zero-Ad Scriptlet Engine (Pre-empts player ad initialization at document_start)
+if (typeof window !== 'undefined' && typeof location !== 'undefined' && (location.hostname.includes('youtube.com') || location.hostname.includes('youtube-nocookie.com'))) {
+  const ytScript = document.createElement('script');
+  ytScript.textContent = `
+    (function() {
+      if (window.__aura_yt_zero_ad_active__) return;
+      window.__aura_yt_zero_ad_active__ = true;
+
+      function purgeAdsFromObject(obj) {
+        if (!obj || typeof obj !== 'object') return obj;
+        try {
+          delete obj.adPlacements;
+          delete obj.playerAds;
+          delete obj.adSlots;
+          delete obj.adSlotsAuxiliary;
+          delete obj.adBreakHeartbeatParams;
+          if (obj.playbackTracking) {
+            delete obj.playbackTracking.videostatsPlaybackUrl;
+            delete obj.playbackTracking.videostatsDelayplayUrl;
+            delete obj.playbackTracking.videostatsWatchtimeUrl;
+            delete obj.playbackTracking.qoeUrl;
+            delete obj.playbackTracking.atrUrl;
+          }
+        } catch (e) {}
+        return obj;
+      }
+
+      // 1. Intercept ytInitialPlayerResponse at definition
+      let _ytPlayerResponse = undefined;
+      Object.defineProperty(window, 'ytInitialPlayerResponse', {
+        get() { return _ytPlayerResponse; },
+        set(val) { _ytPlayerResponse = purgeAdsFromObject(val); },
+        configurable: true,
+        enumerable: true
+      });
+
+      // 2. Intercept window.fetch for /youtubei/v1/player and /next
+      const origFetch = window.fetch;
+      window.fetch = async function(...args) {
+        const response = await origFetch.apply(this, args);
+        const url = (args[0] && typeof args[0] === 'string') ? args[0] : ((args[0] && args[0].url) ? args[0].url : '');
+        if (url && (url.includes('/youtubei/v1/player') || url.includes('/youtubei/v1/next'))) {
+          try {
+            const clone = response.clone();
+            const json = await clone.json();
+            purgeAdsFromObject(json);
+            return new Response(JSON.stringify(json), {
+              status: response.status,
+              statusText: response.statusText,
+              headers: response.headers
+            });
+          } catch (e) {}
+        }
+        return response;
+      };
+
+      // 3. Intercept XMLHttpRequest for player data
+      const origXhrOpen = XMLHttpRequest.prototype.open;
+      const origXhrSend = XMLHttpRequest.prototype.send;
+      XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+        this._url = url;
+        return origXhrOpen.apply(this, [method, url, ...rest]);
+      };
+      XMLHttpRequest.prototype.send = function(...args) {
+        if (this._url && typeof this._url === 'string' && (this._url.includes('/youtubei/v1/player') || this._url.includes('/youtubei/v1/next'))) {
+          this.addEventListener('readystatechange', function() {
+            if (this.readyState === 4 && this.status === 200) {
+              try {
+                const parsed = JSON.parse(this.responseText);
+                purgeAdsFromObject(parsed);
+                Object.defineProperty(this, 'responseText', { value: JSON.stringify(parsed) });
+                Object.defineProperty(this, 'response', { value: JSON.stringify(parsed) });
+              } catch (e) {}
+            }
+          });
+        }
+        return origXhrSend.apply(this, args);
+      };
+
+      // 4. Fail-safe fast-forward and instant click
+      function cleanAds() {
+        const skipBtn = document.querySelector('.ytp-ad-skip-button, .ytp-ad-skip-button-modern, .ytp-skip-ad-button, .videoAdUiSkipButton, button.ytp-ad-skip-button-text');
+        if (skipBtn) skipBtn.click();
+
+        const adShowing = document.querySelector('.ad-showing, .ad-interrupting');
+        const video = document.querySelector('video');
+        if (adShowing && video && !isNaN(video.duration) && isFinite(video.duration)) {
+          video.muted = true;
+          video.playbackRate = 16.0;
+          video.currentTime = video.duration - 0.1;
+        }
+
+        const adContainers = document.querySelectorAll('ytd-action-companion-ad-renderer, ytd-banner-promo-renderer, ytd-ad-slot-renderer, ytd-promoted-sparkles-web-renderer, #player-ads, .ytp-ad-overlay-container, ytd-in-feed-ad-layout-renderer, ytd-display-ad-renderer');
+        adContainers.forEach(c => c.remove());
+      }
+
+      setInterval(cleanAds, 50);
+      document.addEventListener('DOMContentLoaded', cleanAds);
+    })();
+  `;
+  try {
+    (document.head || document.documentElement).appendChild(ytScript);
+    ytScript.remove();
+  } catch (e) {}
+}
