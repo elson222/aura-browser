@@ -75,18 +75,29 @@ function loadUserData() {
   }
 }
 
-function saveUserData() {
-  try {
-    userData.darkModeEnabled = darkModeEnabled;
-    userData.adBlockerEnabled = adBlockerEnabled;
-    userData.autoPipEnabled = autoPipEnabled;
-    userData.saveHistoryEnabled = saveHistoryEnabled;
-    userData.mouseGesturesEnabled = mouseGesturesEnabled;
-    userData.vpnEnabled = vpnEnabled;
-    userData.darkThemeStyle = darkThemeStyle;
-    fs.writeFileSync(userDataPath, JSON.stringify(userData, null, 2), 'utf8');
-  } catch (err) {
-    console.error("Failed to save user data:", err);
+let saveUserDataTimer = null;
+function saveUserData(immediate = false) {
+  if (saveUserDataTimer) clearTimeout(saveUserDataTimer);
+
+  const doSave = async () => {
+    try {
+      userData.darkModeEnabled = darkModeEnabled;
+      userData.adBlockerEnabled = adBlockerEnabled;
+      userData.autoPipEnabled = autoPipEnabled;
+      userData.saveHistoryEnabled = saveHistoryEnabled;
+      userData.mouseGesturesEnabled = mouseGesturesEnabled;
+      userData.vpnEnabled = vpnEnabled;
+      userData.darkThemeStyle = darkThemeStyle;
+      await fs.promises.writeFile(userDataPath, JSON.stringify(userData, null, 2), 'utf8');
+    } catch (err) {
+      console.error("Failed to save user data:", err);
+    }
+  };
+
+  if (immediate) {
+    doSave();
+  } else {
+    saveUserDataTimer = setTimeout(doSave, 300);
   }
 }
 

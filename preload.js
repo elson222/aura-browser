@@ -71,10 +71,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
 // INITIALIZATION ON WEB PAGE
 // ============================================================
 
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && window === window.top) {
   function startEnhancements() {
-    initMouseGestures(ipcRenderer);
-    if (window.location.protocol.startsWith('http') || window.location.protocol === 'file:') {
+    const p = window.location.pathname.toLowerCase();
+    const isInternalOverlay = p.includes('settings.html') || 
+                              p.includes('search.html') || 
+                              p.includes('extensions.html') || 
+                              p.includes('exit-modal.html') || 
+                              p.includes('download-popup.html');
+
+    if (!isInternalOverlay) {
+      initMouseGestures(ipcRenderer);
       initAutoPiP(ipcRenderer);
       initZenFeatures(ipcRenderer);
     }

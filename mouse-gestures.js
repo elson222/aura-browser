@@ -159,22 +159,7 @@ function initMouseGestures(ipcRenderer) {
     ctx.stroke();
   }
 
-  window.addEventListener('mousedown', (e) => {
-    if (!gesturesEnabled) return;
-    if (e.button === 2) { // Right click
-      createElements();
-      resizeCanvas();
-      isTracking = true;
-      startX = e.clientX;
-      startY = e.clientY;
-      points = [{ x: startX, y: startY }];
-      directions = [];
-      lastDirection = null;
-      canvas.style.display = 'block';
-    }
-  }, { capture: true });
-
-  window.addEventListener('mousemove', (e) => {
+  function onMouseMove(e) {
     if (!isTracking) return;
 
     points.push({ x: e.clientX, y: e.clientY });
@@ -190,17 +175,19 @@ function initMouseGestures(ipcRenderer) {
       lastDirection = dir;
       updateHUD(directions.join(''));
     }
-  }, { capture: true });
+  }
 
-  window.addEventListener('mouseup', (e) => {
+  function onMouseUp(e) {
     if (!isTracking) return;
     isTracking = false;
+
+    window.removeEventListener('mousemove', onMouseMove, { capture: true });
+    window.removeEventListener('mouseup', onMouseUp, { capture: true });
 
     const totalDist = Math.hypot(e.clientX - startX, e.clientY - startY);
     const gestureKey = directions.join('');
 
     if (canvas) {
-      // Fade out canvas trail
       let fadeOpacity = 1;
       const fadeInterval = setInterval(() => {
         fadeOpacity -= 0.15;
@@ -223,6 +210,24 @@ function initMouseGestures(ipcRenderer) {
 
     if (totalDist > 20 && gestureKey && gestureActions[gestureKey]) {
       gestureActions[gestureKey].action();
+    }
+  }
+
+  window.addEventListener('mousedown', (e) => {
+    if (!gesturesEnabled) return;
+    if (e.button === 2) { // Right click
+      createElements();
+      resizeCanvas();
+      isTracking = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      points = [{ x: startX, y: startY }];
+      directions = [];
+      lastDirection = null;
+      canvas.style.display = 'block';
+
+      window.addEventListener('mousemove', onMouseMove, { capture: true, passive: true });
+      window.addEventListener('mouseup', onMouseUp, { capture: true });
     }
   }, { capture: true });
 

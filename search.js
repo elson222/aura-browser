@@ -50,17 +50,87 @@ searchInput.addEventListener('input', () => {
 });
 
 function evaluateMathExpression(str) {
-  if (!str) return null;
-  // Match safe math expression e.g. 50 * 12, 100 / 4, 2 + 2, 2^8, sqrt(144)
-  const sanitized = str.replace(/\s+/g, '').replace(/\^/g, '**');
-  if (/^[\d\.\+\-\*\/\(\)\%]+$/.test(sanitized) && /[\+\-\*\/]/.test(sanitized)) {
-    try {
-      const res = Function(`"use strict"; return (${sanitized})`)();
-      if (typeof res === 'number' && !isNaN(res) && isFinite(res)) {
-        return res;
-      }
-    } catch (e) {}
+  if (!str || typeof str !== 'string') return null;
+  const expr = str.trim();
+  if (!/^[\d\.\s\+\-\*\/\(\)\^\%]+$/.test(expr) || !/[\+\-\*\/\^]/.test(expr)) {
+    return null;
   }
+
+  const tokens = [];
+  let i = 0;
+  while (i < expr.length) {
+    const ch = expr[i];
+    if (/\s/.test(ch)) { i++; continue; }
+    if (/\d|\./.test(ch)) {
+      let num = '';
+      while (i < expr.length && /[\d\.]/.test(expr[i])) {
+        num += expr[i++];
+      }
+      tokens.push({ type: 'number', val: parseFloat(num) });
+      continue;
+    }
+    if ('+-*/^()%'.includes(ch)) {
+      tokens.push({ type: 'op', val: ch });
+      i++;
+      continue;
+    }
+    return null;
+  }
+  if (tokens.length === 0) return null;
+
+  let pos = 0;
+  function parseExpression() {
+    let result = parseTerm();
+    while (pos < tokens.length && (tokens[pos].val === '+' || tokens[pos].val === '-')) {
+      const op = tokens[pos++].val;
+      const right = parseTerm();
+      result = op === '+' ? result + right : result - right;
+    }
+    return result;
+  }
+
+  function parseTerm() {
+    let result = parseFactor();
+    while (pos < tokens.length && (tokens[pos].val === '*' || tokens[pos].val === '/' || tokens[pos].val === '%')) {
+      const op = tokens[pos++].val;
+      const right = parseFactor();
+      if (op === '*') result *= right;
+      else if (op === '/') { if (right === 0) return null; result /= right; }
+      else if (op === '%') result %= right;
+    }
+    return result;
+  }
+
+  function parseFactor() {
+    let result = parsePrimary();
+    if (pos < tokens.length && tokens[pos].val === '^') {
+      pos++;
+      const exp = parseFactor();
+      result = Math.pow(result, exp);
+    }
+    return result;
+  }
+
+  function parsePrimary() {
+    if (pos >= tokens.length) return null;
+    const token = tokens[pos++];
+    if (token.type === 'number') return token.val;
+    if (token.val === '+') return parsePrimary();
+    if (token.val === '-') return -parsePrimary();
+    if (token.val === '(') {
+      const val = parseExpression();
+      if (pos < tokens.length && tokens[pos].val === ')') pos++;
+      return val;
+    }
+    return null;
+  }
+
+  try {
+    const val = parseExpression();
+    if (typeof val === 'number' && !isNaN(val) && isFinite(val) && pos === tokens.length) {
+      return Number.isInteger(val) ? val : parseFloat(val.toFixed(4));
+    }
+  } catch (e) {}
   return null;
 }
 

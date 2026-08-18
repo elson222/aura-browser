@@ -24,9 +24,19 @@ async function fetchProxies() {
   }
 }
 
+let testSession = null;
+function getTestSession() {
+  if (!testSession && app.isReady()) {
+    testSession = session.fromPartition('in-memory-proxy-test', { cache: false });
+  }
+  return testSession;
+}
+
 async function testProxyQuick(proxy) {
   return new Promise((resolve) => {
-    const ses = session.fromPartition('proxy-test-' + Math.random());
+    const ses = getTestSession();
+    if (!ses) return resolve({ proxy, ok: false });
+
     const rule = proxy.includes('://') ? proxy : (proxy.includes(':') ? `socks5://${proxy}` : proxy);
     ses.setProxy({ proxyRules: rule })
       .then(() => {
@@ -35,9 +45,19 @@ async function testProxyQuick(proxy) {
           url: 'https://www.google.com',
           session: ses
         });
-        req.on('response', () => resolve({ proxy: rule, ok: true }));
-        req.on('error', () => resolve({ proxy: rule, ok: false }));
-        req.setTimeout(1200);
+        const timeout = setTimeout(() => {
+          try { req.abort(); } catch (e) {}
+          resolve({ proxy: rule, ok: false });
+        }, 1200);
+
+        req.on('response', () => {
+          clearTimeout(timeout);
+          resolve({ proxy: rule, ok: true });
+        });
+        req.on('error', () => {
+          clearTimeout(timeout);
+          resolve({ proxy: rule, ok: false });
+        });
         req.end();
       })
       .catch(() => resolve({ proxy: rule, ok: false }));
