@@ -129,6 +129,12 @@ class TabManager {
       this.broadcastTabs();
     });
 
+    wc.on('dom-ready', () => {
+      if (this.adblocker) {
+        this.adblocker.injectCosmeticFilters(wc, true);
+      }
+    });
+
     wc.on('did-finish-load', () => {
       // 1. Automatic Cosmetic Ad & Tracker Filtering on all websites
       if (this.adblocker) {
