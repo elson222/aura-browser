@@ -489,7 +489,11 @@ function hideAllOverlays() {
   if (extensionsWindow && extensionsWindow.isVisible()) extensionsWindow.hide();
   if (downloadPopupWindow && downloadPopupWindow.isVisible()) downloadPopupWindow.hide();
   if (exitModalWindow && exitModalWindow.isVisible()) exitModalWindow.hide();
-  if (mainWindow) mainWindow.focus();
+  if (tabManager && tabManager.getActiveTab()) {
+    try { tabManager.getActiveTab().view.webContents.focus(); } catch (e) {}
+  } else if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.focus();
+  }
 }
 
 async function savePage() {
@@ -521,10 +525,12 @@ async function clearBrowsingData() {
 }
 
 function bookmarkCurrentPage() {
-  if (!mainWindow) return;
-  const currentUrl = mainWindow.webContents.getURL();
-  if (currentUrl.startsWith('file://')) return;
-  const title = mainWindow.webContents.getTitle() || currentUrl;
+  if (!tabManager) return;
+  const activeTab = tabManager.getActiveTab();
+  if (!activeTab) return;
+  const currentUrl = activeTab.view.webContents.getURL();
+  if (!currentUrl || currentUrl.startsWith('file://')) return;
+  const title = activeTab.view.webContents.getTitle() || currentUrl;
 
   const alreadyBookmarked = userData.bookmarks.some(b => b.url === currentUrl);
   if (!alreadyBookmarked) {
@@ -641,7 +647,11 @@ function hideSearchOverlay() {
   if (searchWindow && !searchWindow.isDestroyed()) {
     searchWindow.hide();
   }
-  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.focus();
+  if (tabManager && tabManager.getActiveTab()) {
+    try { tabManager.getActiveTab().view.webContents.focus(); } catch (e) {}
+  } else if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.focus();
+  }
 }
 
 // ============================================================
@@ -815,14 +825,27 @@ function removeExtension(extensionId) {
   }
 }
 
+function getBundledExtensionPath(relPath) {
+  const normalPath = path.join(__dirname, relPath);
+  if (fs.existsSync(path.join(normalPath, 'manifest.json'))) return normalPath;
+
+  const unpackedPath = normalPath.replace('app.asar', 'app.asar.unpacked');
+  if (fs.existsSync(path.join(unpackedPath, 'manifest.json'))) return unpackedPath;
+
+  const appPath = path.join(app.getAppPath(), relPath);
+  if (fs.existsSync(path.join(appPath, 'manifest.json'))) return appPath;
+
+  return normalPath;
+}
+
 function loadSavedExtensions() {
   try {
     // 1. Load native bundled extensions (uBlock Origin built-in)
-    const bundledUblock = path.join(__dirname, 'default-extensions', 'ublock-origin');
+    const bundledUblock = getBundledExtensionPath(path.join('default-extensions', 'ublock-origin'));
     if (fs.existsSync(path.join(bundledUblock, 'manifest.json'))) {
       try {
         session.defaultSession.loadExtension(bundledUblock, { allowFileAccess: false });
-        console.log('Native uBlock Origin loaded into session.');
+        console.log('Native uBlock Origin loaded into session from:', bundledUblock);
       } catch (err) {
         console.error('Failed to load bundled uBlock Origin:', err.message);
       }
@@ -1111,26 +1134,30 @@ function parseSearchQuery(query) {
       if (shortcut === '!y' || shortcut === '!yt') {
         return 'https://www.youtube.com/results?search_query=' + encodeURIComponent(searchTerms);
       }
+      if (shortcut === '!gh') {
+        return 'https://github.com/search?q=' + encodeURIComponent(searchTerms);
+      }
       if (shortcut === '!g') {
         return 'https://www.google.com/search?q=' + encodeURIComponent(searchTerms);
       }
     }
   }
 
-  if (!/^https?:\/\//i.test(url)) {
-    const isDomain = /^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/i.test(url);
-    const isLocalhost = /^(localhost|127\.0\.0\.1)(:[0-9]{1,5})?(\/.*)?$/i.test(url);
-
-    if (isDomain) {
-      url = 'https://' + url;
-    } else if (isLocalhost) {
-      url = 'http://' + url;
-    } else {
-      url = 'https://www.google.com/search?q=' + encodeURIComponent(query);
-    }
+  if (/^https?:\/\//i.test(url)) {
+    return url;
   }
 
-  return url;
+  const hasSpaces = /\s/.test(url);
+  const isDomain = !hasSpaces && /^[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,24}(:[0-9]{1,5})?(\/.*)?$/i.test(url);
+  const isLocalhost = !hasSpaces && /^(localhost|127\.0\.0\.1)(:[0-9]{1,5})?(\/.*)?$/i.test(url);
+
+  if (isDomain) {
+    return 'https://' + url;
+  } else if (isLocalhost) {
+    return 'http://' + url;
+  } else {
+    return 'https://www.google.com/search?q=' + encodeURIComponent(query);
+  }
 }
 
 // ============================================================
@@ -1453,17 +1480,34 @@ ipcMain.on('retry-download', (event, id) => {
 // Global Trigger Actions
 function triggerGlobalAction(action) {
   if (action === 'search') showSearchOverlay('search');
+  else if (action === 'new-tab-search' || action === 'new-tab') {
+    if (tabManager) tabManager.createTab('homepage', true);
+  }
   else if (action === 'history') showSearchOverlay('history');
   else if (action === 'downloads') showDownloadsManager();
   else if (action === 'extensions') showExtensionsOverlay();
   else if (action === 'settings') showSettingsOverlay();
-  else if (action === 'new-tab') { if (tabManager) tabManager.createTab(); }
   else if (action === 'close-tab') { if (tabManager) tabManager.closeTab(tabManager.activeTabId); }
   else if (action === 'restore-tab') { if (tabManager) tabManager.restoreClosedTab(); }
   else if (action === 'reload') { if (tabManager) tabManager.reloadActiveTab(); }
   else if (action === 'go-back') { if (tabManager) tabManager.goBackActiveTab(); }
   else if (action === 'go-forward') { if (tabManager) tabManager.goForwardActiveTab(); }
   else if (action === 'home') { if (tabManager) tabManager.navigateActiveTab('homepage'); }
+  else if (action === 'bookmark') { bookmarkCurrentPage(); }
+  else if (action === 'toggle-fullscreen') { if (mainWindow) mainWindow.setFullScreen(!mainWindow.isFullScreen()); }
+  else if (action === 'escape') {
+    if (isAnyOverlayVisible()) {
+      hideAllOverlays();
+    } else {
+      const now = Date.now();
+      if (now - lastEscTimestamp <= DOUBLE_ESC_THRESHOLD_MS) {
+        app.quit();
+        return;
+      }
+      lastEscTimestamp = now;
+      showExitModal();
+    }
+  }
   else if (action === 'toggle-adblock') {
     adBlockerEnabled = !adBlockerEnabled;
     saveUserData();
@@ -1473,15 +1517,15 @@ function triggerGlobalAction(action) {
     }
   }
   else if (action === 'zoom-in') {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      const level = mainWindow.webContents.getZoomLevel();
-      mainWindow.webContents.setZoomLevel(Math.min(level + 0.5, 5));
+    if (tabManager && tabManager.getActiveTab()) {
+      const wc = tabManager.getActiveTab().view.webContents;
+      wc.setZoomLevel(Math.min(wc.getZoomLevel() + 0.5, 5));
     }
   }
   else if (action === 'zoom-out') {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      const level = mainWindow.webContents.getZoomLevel();
-      mainWindow.webContents.setZoomLevel(Math.max(level - 0.5, -5));
+    if (tabManager && tabManager.getActiveTab()) {
+      const wc = tabManager.getActiveTab().view.webContents;
+      wc.setZoomLevel(Math.max(wc.getZoomLevel() - 0.5, -5));
     }
   }
   else if (action === 'print') {
@@ -1500,7 +1544,7 @@ ipcMain.on('trigger-action', (event, action) => {
   triggerGlobalAction(action);
 });
 
-module.exports = { triggerGlobalAction };
+module.exports = { triggerGlobalAction, parseSearchQuery };
 
 ipcMain.on('cancel-popup', () => {
   if (downloadPopupWindow) downloadPopupWindow.hide();

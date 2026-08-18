@@ -19,7 +19,7 @@ class TabManager {
     return { x: 0, y: 0, width, height };
   }
 
-  createTab(initialUrl = null) {
+  createTab(initialUrl = null, openSearch = false) {
     if (!this.mainWindow || this.mainWindow.isDestroyed()) return null;
 
     this.tabCounter++;
@@ -53,12 +53,12 @@ class TabManager {
     const wc = view.webContents;
     wc.setVisualZoomLevelLimits(1, 3);
 
-    // Security: Block webview tag injection
+    // Block webview tag injection
     wc.on('will-attach-webview', (event) => {
       event.preventDefault();
     });
 
-    // Security: Intercept window.open popups and open safely in new isolated tabs
+    // Intercept window.open popups and target="_blank" and open safely in new isolated tabs
     wc.setWindowOpenHandler(({ url }) => {
       try {
         const parsed = new URL(url);
@@ -69,13 +69,12 @@ class TabManager {
       return { action: 'deny' };
     });
 
-    // Security: Navigation Guards to block malicious protocols & file:// traversal
+    // Navigation Guards to block malicious protocols
     wc.on('will-navigate', (event, targetUrl) => {
       try {
         const currentUrl = tab.url || '';
         const parsedTarget = new URL(targetUrl);
 
-        // Disallow remote websites from navigating to file://, javascript:, or data: html
         if (parsedTarget.protocol === 'file:') {
           const isInternalHome = targetUrl.endsWith('homepage.html');
           if (!isInternalHome && !currentUrl.startsWith('file://')) {
@@ -183,7 +182,7 @@ class TabManager {
       if (params.selectionText) {
         menuTemplate.push(
           {
-            label: `Search for "${params.selectionText.length > 25 ? params.selectionText.substring(0, 22) + '...' : params.selectionText}"`,
+            label: `Search Google for "${params.selectionText.length > 25 ? params.selectionText.substring(0, 22) + '...' : params.selectionText}"`,
             click: () => this.createTab('https://www.google.com/search?q=' + encodeURIComponent(params.selectionText))
           },
           {
@@ -241,6 +240,21 @@ class TabManager {
       const shift = input.shift;
       const alt = input.alt;
 
+      // Escape -> Stop page loading or close overlays/exit
+      if (input.key === 'Escape' && !ctrl && !shift && !alt) {
+        if (wc.isLoading()) {
+          event.preventDefault();
+          wc.stop();
+          return;
+        }
+        event.preventDefault();
+        if (this.mainWindow) {
+          const { triggerGlobalAction } = require('./main');
+          if (triggerGlobalAction) triggerGlobalAction('escape');
+        }
+        return;
+      }
+
       // Ctrl + Shift + T -> Restore Closed Tab
       if (ctrl && shift && key === 't') {
         event.preventDefault();
@@ -248,10 +262,10 @@ class TabManager {
         return;
       }
 
-      // Ctrl + T -> New Tab
+      // Ctrl + T -> New Tab & Focus Search HUD
       if (ctrl && !shift && key === 't') {
         event.preventDefault();
-        this.createTab();
+        this.createTab('homepage', true);
         return;
       }
 
@@ -339,13 +353,6 @@ class TabManager {
         return;
       }
 
-      // Ctrl + B -> Toggle Zen Sidebar
-      if (ctrl && !shift && key === 'b') {
-        event.preventDefault();
-        wc.send('toggle-zen-dock');
-        return;
-      }
-
       // Ctrl + , -> Settings
       if (ctrl && !shift && input.key === ',') {
         event.preventDefault();
@@ -356,7 +363,7 @@ class TabManager {
         return;
       }
 
-      // Ctrl + J -> Downloads
+      // Ctrl + J -> Downloads Manager
       if (ctrl && !shift && key === 'j') {
         event.preventDefault();
         if (this.mainWindow) {
@@ -366,7 +373,17 @@ class TabManager {
         return;
       }
 
-      // Ctrl + R or F5 -> Reload
+      // Ctrl + D -> Bookmark Current Page
+      if (ctrl && !shift && key === 'd') {
+        event.preventDefault();
+        if (this.mainWindow) {
+          const { triggerGlobalAction } = require('./main');
+          if (triggerGlobalAction) triggerGlobalAction('bookmark');
+        }
+        return;
+      }
+
+      // Ctrl + R / F5 -> Reload
       if ((ctrl && !shift && key === 'r') || key === 'f5') {
         event.preventDefault();
         wc.reload();
@@ -377,6 +394,46 @@ class TabManager {
       if (ctrl && shift && key === 'r') {
         event.preventDefault();
         wc.reloadIgnoringCache();
+        return;
+      }
+
+      // F11 -> Toggle Fullscreen
+      if (key === 'f11' || (ctrl && !shift && key === 'm')) {
+        event.preventDefault();
+        if (this.mainWindow) {
+          const { triggerGlobalAction } = require('./main');
+          if (triggerGlobalAction) triggerGlobalAction('toggle-fullscreen');
+        }
+        return;
+      }
+
+      // F12 or Ctrl+Shift+I -> DevTools
+      if (key === 'f12' || (ctrl && shift && key === 'i')) {
+        event.preventDefault();
+        wc.toggleDevTools();
+        return;
+      }
+
+      // Ctrl + = / Ctrl + + -> Zoom in
+      if (ctrl && (key === '=' || key === '+')) {
+        event.preventDefault();
+        const level = wc.getZoomLevel();
+        wc.setZoomLevel(Math.min(level + 0.5, 5));
+        return;
+      }
+
+      // Ctrl + - -> Zoom out
+      if (ctrl && key === '-') {
+        event.preventDefault();
+        const level = wc.getZoomLevel();
+        wc.setZoomLevel(Math.max(level - 0.5, -5));
+        return;
+      }
+
+      // Ctrl + 0 -> Reset Zoom
+      if (ctrl && key === '0') {
+        event.preventDefault();
+        wc.setZoomLevel(0);
         return;
       }
     });
@@ -393,6 +450,14 @@ class TabManager {
     }
 
     this.switchTab(tabId);
+
+    if (openSearch && this.mainWindow) {
+      setTimeout(() => {
+        const { triggerGlobalAction } = require('./main');
+        if (triggerGlobalAction) triggerGlobalAction('search');
+      }, 50);
+    }
+
     return tab;
   }
 
@@ -454,9 +519,8 @@ class TabManager {
   }
 
   restoreClosedTab() {
-    if (this.closedTabsHistory.length === 0) return null;
-    const lastClosed = this.closedTabsHistory.pop();
-    if (lastClosed && lastClosed.url) {
+    if (this.closedTabsHistory.length > 0) {
+      const lastClosed = this.closedTabsHistory.pop();
       return this.createTab(lastClosed.url);
     }
     return null;
@@ -523,20 +587,11 @@ class TabManager {
       return;
     }
 
-    const wc = tab.view.webContents;
-    let url = query.trim();
+    const { parseSearchQuery } = require('./main');
+    const url = parseSearchQuery ? parseSearchQuery(query) : query;
     if (!url) return;
 
-    if (!/^https?:\/\//i.test(url)) {
-      const isDomain = /^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/i.test(url);
-      if (isDomain) {
-        url = 'https://' + url;
-      } else {
-        url = 'https://www.google.com/search?q=' + encodeURIComponent(url);
-      }
-    }
-
-    wc.loadURL(url);
+    tab.view.webContents.loadURL(url);
   }
 
   reloadActiveTab(bypassCache = false) {

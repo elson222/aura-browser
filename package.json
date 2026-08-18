@@ -39,6 +39,9 @@
   "build": {
     "appId": "com.aura.browser",
     "productName": "Aura Browser",
+    "asarUnpack": [
+      "default-extensions/**/*"
+    ],
     "icon": "assets/icon.ico",
     "win": {
       "icon": "assets/icon.ico",

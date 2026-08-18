@@ -34,11 +34,25 @@ async function runTestSuite() {
   // 1. Math Parser & Search HUD Unit Tests
   console.log('--- 1. Testing Search HUD & Non-Eval Math Engine ---');
   const searchEngine = require('./search');
+  const { parseSearchQuery } = require('./main');
+
   assert('Math evaluation: Basic Addition', searchEngine.safeEvaluateMath('25 + 75') === 100);
   assert('Math evaluation: Precedence & Parens', searchEngine.safeEvaluateMath('(10 + 5) * 4') === 60);
   assert('Math evaluation: Division & Decimal', searchEngine.safeEvaluateMath('100 / 8') === 12.5);
   assert('Math evaluation: Security injection rejected', searchEngine.safeEvaluateMath('process.exit()') === null);
   assert('Math evaluation: Unsafe code rejected', searchEngine.safeEvaluateMath('require("fs")') === null);
+
+  // 1.1 URL vs Search vs Bang Parsing
+  console.log('\n--- 1.1 Testing URL, Naked Domain, Bang & Query Resolution ---');
+  assert('Full HTTPS URL resolved as-is', parseSearchQuery('https://google.com') === 'https://google.com');
+  assert('Full HTTP URL resolved as-is', parseSearchQuery('http://example.com') === 'http://example.com');
+  assert('Naked domain resolved to HTTPS', parseSearchQuery('google.com') === 'https://google.com');
+  assert('Subdomain and path resolved to HTTPS', parseSearchQuery('en.wikipedia.org/wiki/Earth') === 'https://en.wikipedia.org/wiki/Earth');
+  assert('Localhost port resolved to HTTP', parseSearchQuery('localhost:3000') === 'http://localhost:3000');
+  assert('Search query resolved to Google Search', parseSearchQuery('best cameras for video') === 'https://www.google.com/search?q=best%20cameras%20for%20video');
+  assert('YouTube Bang (!yt) resolved', parseSearchQuery('!yt interstellar soundtrack') === 'https://www.youtube.com/results?search_query=interstellar%20soundtrack');
+  assert('Wikipedia Bang (!w) resolved', parseSearchQuery('!w quantum mechanics') === 'https://en.wikipedia.org/wiki/Special:Search?search=quantum%20mechanics');
+  assert('GitHub Bang (!gh) resolved', parseSearchQuery('!gh aura-browser') === 'https://github.com/search?q=aura-browser');
 
   // 2. CRX & Extension Security Parsing
   console.log('\n--- 2. Testing Extension Loader & Security Parsing ---');

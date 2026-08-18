@@ -1,8 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
-const { initMouseGestures } = require('./mouse-gestures');
-const { initAutoPiP } = require('./pip-engine');
-const { initZenFeatures } = require('./zen-features');
 
+// Expose safe, scoped electronAPI to internal renderer windows and overlays
 contextBridge.exposeInMainWorld('electronAPI', {
   // === Search & Navigation ===
   performNavigation: (query) => ipcRenderer.send('perform-navigation', query),
@@ -52,7 +50,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getTabs: () => ipcRenderer.invoke('get-tabs'),
   onTabsUpdated: (callback) => ipcRenderer.on('tabs-updated', (_event, data) => callback(data)),
 
-  // === Settings & Stats ===
+  // === Settings & Controls ===
   getSettings: () => ipcRenderer.invoke('get-settings'),
   saveSetting: (key, value) => ipcRenderer.invoke('save-setting', { key, value }),
   clearBrowsingData: () => ipcRenderer.invoke('clear-browsing-data'),
@@ -66,30 +64,3 @@ contextBridge.exposeInMainWorld('electronAPI', {
   toggleVpn: () => ipcRenderer.invoke('toggle-vpn'),
   getVpnStatus: () => ipcRenderer.invoke('get-vpn-status'),
 });
-
-// ============================================================
-// INITIALIZATION ON WEB PAGE
-// ============================================================
-
-if (typeof window !== 'undefined' && window === window.top) {
-  function startEnhancements() {
-    const p = window.location.pathname.toLowerCase();
-    const isInternalOverlay = p.includes('settings.html') || 
-                              p.includes('search.html') || 
-                              p.includes('extensions.html') || 
-                              p.includes('exit-modal.html') || 
-                              p.includes('download-popup.html');
-
-    if (!isInternalOverlay) {
-      initMouseGestures(ipcRenderer);
-      initAutoPiP(ipcRenderer);
-      initZenFeatures(ipcRenderer);
-    }
-  }
-
-  if (document.readyState === 'loading') {
-    window.addEventListener('DOMContentLoaded', startEnhancements);
-  } else {
-    startEnhancements();
-  }
-}
