@@ -1004,8 +1004,21 @@ async function applyAdBlockerCosmetics() {
 // ============================================================
 
 function parseSearchQuery(query) {
-  let url = query.trim();
+  if (!query || typeof query !== 'string') return '';
+  let url = query.trim().substring(0, 2048);
   if (!url) return '';
+
+  // Security: Disallow dangerous pseudo-protocols
+  const lower = url.toLowerCase();
+  if (lower.startsWith('javascript:') || lower.startsWith('vbscript:') || lower.startsWith('data:text/html')) {
+    return 'https://www.google.com/search?q=' + encodeURIComponent(query);
+  }
+
+  // Security: Only allow internal homepage for file://
+  if (lower.startsWith('file://')) {
+    if (url.endsWith('homepage.html')) return url;
+    return 'https://www.google.com/search?q=' + encodeURIComponent(query);
+  }
 
   if (url.startsWith('!')) {
     const spaceIndex = url.indexOf(' ');
@@ -1268,8 +1281,24 @@ ipcMain.on('close-settings', () => {
 
 ipcMain.handle('submit-feedback', async (event, data) => {
   try {
+    if (!data || typeof data !== 'object') return { success: false, error: 'Invalid feedback data' };
+    
+    const safeCategory = typeof data.category === 'string' ? data.category.substring(0, 50) : 'General';
+    const safeEmail = typeof data.email === 'string' ? data.email.substring(0, 100) : 'anonymous@aurabrowser.app';
+    const safeMessage = typeof data.message === 'string' ? data.message.substring(0, 5000) : '';
+    const safeRating = typeof data.rating === 'number' ? Math.max(1, Math.min(5, data.rating)) : 5;
+
+    const feedbackEntry = {
+      category: safeCategory,
+      email: safeEmail,
+      message: safeMessage,
+      rating: safeRating,
+      recipient: 'info@cornel.media',
+      timestamp: Date.now()
+    };
+
     if (!userData.feedbackLog) userData.feedbackLog = [];
-    userData.feedbackLog.push({ ...data, recipient: 'info@cornel.media' });
+    userData.feedbackLog.push(feedbackEntry);
     saveUserData();
 
     // Send payload to email via formspree/endpoint if available
@@ -1281,10 +1310,10 @@ ipcMain.handle('submit-feedback', async (event, data) => {
         headers: { 'Content-Type': 'application/json' }
       });
       req.write(JSON.stringify({
-        email: data.email || 'anonymous@aurabrowser.app',
-        message: `[Aura Browser Feedback] [${data.category}]: ${data.message}`,
+        email: safeEmail,
+        message: `[Aura Browser Feedback] [${safeCategory}]: ${safeMessage}`,
         recipient: 'info@cornel.media',
-        appVersion: '2.0.0'
+        appVersion: '2.1.0'
       }));
       req.end();
     } catch (e) {}
@@ -1400,6 +1429,29 @@ app.whenReady().then(() => {
     const { exec } = require('child_process');
     exec('powershell -Command "Set-ItemProperty -Path \'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize\' -Name \'EnableTransparency\' -Value 1"', () => {});
   }
+
+  // Security: Enforce strict session permission handlers
+  session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
+    const allowed = ['fullscreen', 'notifications'];
+    if (allowed.includes(permission)) {
+      return callback(true);
+    }
+    if (permission === 'media' || permission === 'geolocation') {
+      const url = webContents.getURL();
+      if (url && url.startsWith('https://')) {
+        return callback(true);
+      }
+    }
+    return callback(false);
+  });
+
+  session.defaultSession.setPermissionCheckHandler((webContents, permission, requestingOrigin) => {
+    if (permission === 'fullscreen' || permission === 'notifications') return true;
+    if ((permission === 'media' || permission === 'geolocation') && requestingOrigin && requestingOrigin.startsWith('https://')) {
+      return true;
+    }
+    return false;
+  });
 
   // Setup Ad Blocker WebRequest filtering (Enabled by default)
   adblocker.setupAdBlocker(session.defaultSession, () => adBlockerEnabled, (count) => {

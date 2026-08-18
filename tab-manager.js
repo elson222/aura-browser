@@ -29,6 +29,11 @@ class TabManager {
         preload: path.join(__dirname, 'preload.js'),
         contextIsolation: true,
         nodeIntegration: false,
+        nodeIntegrationInWorker: false,
+        nodeIntegrationInSubFrames: false,
+        webSecurity: true,
+        allowRunningInsecureContent: false,
+        navigateOnDragDrop: false,
         sandbox: false
       }
     });
@@ -46,6 +51,46 @@ class TabManager {
     // Setup View WebContents Listeners
     const wc = view.webContents;
     wc.setVisualZoomLevelLimits(1, 3);
+
+    // Security: Block webview tag injection
+    wc.on('will-attach-webview', (event) => {
+      event.preventDefault();
+    });
+
+    // Security: Intercept window.open popups and open safely in new isolated tabs
+    wc.setWindowOpenHandler(({ url }) => {
+      try {
+        const parsed = new URL(url);
+        if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+          this.createTab(url);
+        }
+      } catch (e) {}
+      return { action: 'deny' };
+    });
+
+    // Security: Navigation Guards to block malicious protocols & file:// traversal
+    wc.on('will-navigate', (event, targetUrl) => {
+      try {
+        const currentUrl = tab.url || '';
+        const parsedTarget = new URL(targetUrl);
+
+        // Disallow remote websites from navigating to file://, javascript:, or data: html
+        if (parsedTarget.protocol === 'file:') {
+          const isInternalHome = targetUrl.endsWith('homepage.html');
+          if (!isInternalHome && !currentUrl.startsWith('file://')) {
+            event.preventDefault();
+            return;
+          }
+        }
+
+        if (parsedTarget.protocol === 'javascript:' || parsedTarget.protocol === 'vbscript:') {
+          event.preventDefault();
+          return;
+        }
+      } catch (e) {
+        event.preventDefault();
+      }
+    });
 
     wc.on('page-title-updated', (_e, title) => {
       tab.title = title || 'Aura Tab';

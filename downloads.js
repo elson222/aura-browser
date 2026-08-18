@@ -267,21 +267,41 @@ function clearDetectedMedia(pageUrl) {
 /**
  * Setup download tracking on a session
  * @param {Electron.Session} session
+function sanitizeFilename(filename) {
+  if (!filename || typeof filename !== 'string') return 'download';
+  const base = path.basename(filename);
+  const clean = base.replace(/[<>:"/\\|?*\x00-\x1F]/g, '_').trim();
+  if (/^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\..*)?$/i.test(clean)) {
+    return 'download_' + clean;
+  }
+  return clean.length > 0 ? clean.substring(0, 255) : 'download';
+}
+
+/**
+ * Setup download tracking on a session
+ * @param {Electron.Session} session
  * @param {Function} onUpdate - callback(downloads[])
  */
 function setupDownloadTracking(session, onUpdate) {
   session.on('will-download', (event, item, webContents) => {
     const id = `dl-${++downloadIdCounter}`;
-    const filename = item.getFilename();
-    const savePath = path.join(downloadsDir, filename);
+    const rawFilename = item.getFilename();
+    const safeFilename = sanitizeFilename(rawFilename);
+    const resolvedDir = path.resolve(downloadsDir);
+    let savePath = path.join(resolvedDir, safeFilename);
+
+    // Verify path stays within downloads directory
+    if (!path.resolve(savePath).startsWith(resolvedDir)) {
+      savePath = path.join(resolvedDir, 'download');
+    }
 
     // Avoid overwriting — append number if exists
     let finalPath = savePath;
     let counter = 1;
     while (fs.existsSync(finalPath)) {
-      const ext = path.extname(filename);
-      const name = path.basename(filename, ext);
-      finalPath = path.join(downloadsDir, `${name} (${counter})${ext}`);
+      const ext = path.extname(safeFilename);
+      const name = path.basename(safeFilename, ext);
+      finalPath = path.join(resolvedDir, `${name} (${counter})${ext}`);
       counter++;
     }
 
