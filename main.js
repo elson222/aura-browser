@@ -866,6 +866,17 @@ function loadSavedExtensions() {
       }
     }
 
+    // 2. Load native bundled extensions (Adblock Plus built-in)
+    const bundledAdblockPlus = getBundledExtensionPath(path.join('default-extensions', 'adblock-plus'));
+    if (fs.existsSync(path.join(bundledAdblockPlus, 'manifest.json'))) {
+      try {
+        session.defaultSession.loadExtension(bundledAdblockPlus, { allowFileAccess: false });
+        console.log('Native Adblock Plus loaded into session from:', bundledAdblockPlus);
+      } catch (err) {
+        console.error('Failed to load bundled Adblock Plus:', err.message);
+      }
+    }
+
     // 2. Load user installed extensions
     if (fs.existsSync(extensionsDir)) {
       const dirs = fs.readdirSync(extensionsDir);
