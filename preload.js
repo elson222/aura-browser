@@ -64,3 +64,27 @@ contextBridge.exposeInMainWorld('electronAPI', {
   toggleVpn: () => ipcRenderer.invoke('toggle-vpn'),
   getVpnStatus: () => ipcRenderer.invoke('get-vpn-status'),
 });
+
+// Passive Trackpad 2-Finger Horizontal Swipe Navigation (100% Non-intrusive)
+if (typeof window !== 'undefined' && window === window.top) {
+  let swipeAccumulator = 0;
+  let swipeTimeout = null;
+
+  window.addEventListener('wheel', (e) => {
+    // Only detect horizontal touchpad swipes (deltaX dominant)
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY) * 1.5 && Math.abs(e.deltaX) > 10) {
+      swipeAccumulator += e.deltaX;
+      clearTimeout(swipeTimeout);
+      swipeTimeout = setTimeout(() => { swipeAccumulator = 0; }, 250);
+
+      // Swipe Left (deltaX > 0) -> Forward, Swipe Right (deltaX < 0) -> Back
+      if (swipeAccumulator > 150) {
+        swipeAccumulator = 0;
+        ipcRenderer.send('trigger-action', 'go-forward');
+      } else if (swipeAccumulator < -150) {
+        swipeAccumulator = 0;
+        ipcRenderer.send('trigger-action', 'go-back');
+      }
+    }
+  }, { passive: true });
+}

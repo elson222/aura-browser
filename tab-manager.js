@@ -129,6 +129,91 @@ class TabManager {
       this.broadcastTabs();
     });
 
+    wc.on('did-finish-load', () => {
+      // 1. Automatic Cosmetic Ad & Tracker Filtering on all websites
+      if (this.adblocker) {
+        this.adblocker.injectCosmeticFilters(wc, true);
+      }
+
+      // 2. Chrome Web Store 1-Click Installation Bridge
+      const currentUrl = wc.getURL();
+      if (currentUrl && (currentUrl.includes('chromewebstore.google.com/detail/') || currentUrl.includes('chrome.google.com/webstore/detail/'))) {
+        wc.executeJavaScript(`
+          (function() {
+            if (document.getElementById('aura-webstore-installer')) return;
+            const match = window.location.href.match(/\\/detail\\/[^\\/]+\\/([a-z]{32})/i) || window.location.href.match(/\\/([a-z]{32})(\\/|\\?|$)/i);
+            if (!match || !match[1]) return;
+            const extId = match[1];
+
+            const btn = document.createElement('div');
+            btn.id = 'aura-webstore-installer';
+            btn.innerHTML = \`
+              <div style="
+                position: fixed;
+                bottom: 32px;
+                right: 32px;
+                z-index: 2147483647;
+                background: rgba(18, 18, 24, 0.92);
+                border: 1px solid rgba(255, 255, 255, 0.18);
+                box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(79, 172, 254, 0.4);
+                border-radius: 16px;
+                padding: 14px 22px;
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                color: #ffffff;
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+              ">
+                <div style="width: 10px; height: 10px; border-radius: 50%; background: #00f2fe; box-shadow: 0 0 12px #00f2fe;"></div>
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-size: 13px; font-weight: 700; color: #fff;">Aura Extension Engine</span>
+                  <span style="font-size: 11px; color: #a1a1aa;">1-Click Web Store Installation</span>
+                </div>
+                <button id="auraInstallBtn" style="
+                  background: linear-gradient(135deg, #4facfe, #00f2fe);
+                  color: #050508;
+                  border: none;
+                  border-radius: 10px;
+                  padding: 8px 18px;
+                  font-size: 13px;
+                  font-weight: 700;
+                  cursor: pointer;
+                  box-shadow: 0 4px 14px rgba(79, 172, 254, 0.4);
+                  transition: transform 0.15s ease, opacity 0.15s ease;
+                ">Install in Aura</button>
+              </div>
+            \`;
+            document.body.appendChild(btn);
+
+            const installBtn = document.getElementById('auraInstallBtn');
+            installBtn.addEventListener('click', async () => {
+              installBtn.disabled = true;
+              installBtn.innerText = 'Installing...';
+              installBtn.style.opacity = '0.7';
+              try {
+                if (window.electronAPI && window.electronAPI.installExtensionWebStore) {
+                  const res = await window.electronAPI.installExtensionWebStore(extId);
+                  if (res && res.success) {
+                    installBtn.innerText = '✅ Installed & Active';
+                    installBtn.style.background = '#10b981';
+                    installBtn.style.color = '#fff';
+                  } else {
+                    installBtn.innerText = '❌ ' + (res && res.error ? res.error : 'Installation Error');
+                    installBtn.style.background = '#ef4444';
+                    installBtn.style.color = '#fff';
+                  }
+                }
+              } catch (e) {
+                installBtn.innerText = '❌ Failed: ' + e.message;
+              }
+            });
+          })();
+        `).catch(() => {});
+      }
+    });
+
     // Windows Hardware App Commands (Touchpad Swipes, Keyboard Media & Back/Forward Keys)
     wc.on('app-command', (event, cmd) => {
       if (cmd === 'browser-backward') {

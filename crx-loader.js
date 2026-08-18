@@ -41,8 +41,8 @@ async function extractCrx(crxSource, targetDir) {
  */
 function downloadCrxFromWebStore(extensionId) {
   return new Promise((resolve, reject) => {
-    // Official Google Chrome Web Store CRX download API
-    const url = `https://clients2.google.com/service/update2/crx?response=redirect&prodversion=126.0.6478.127&acceptformat=crx2,crx3&x=id%3D${encodeURIComponent(extensionId)}%26uc`;
+    // Official Google Chrome Web Store CRX download API (Chromium 131 standard)
+    const url = `https://clients2.google.com/service/update2/crx?response=redirect&prodversion=131.0.6778.86&acceptformat=crx2,crx3&x=id%3D${encodeURIComponent(extensionId)}%26uc`;
 
     function fetchUrl(targetUrl, redirects = 0) {
       if (redirects > 8) {
@@ -52,7 +52,7 @@ function downloadCrxFromWebStore(extensionId) {
       const client = targetUrl.startsWith('https') ? https : http;
       client.get(targetUrl, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
           'Accept': '*/*'
         }
       }, (res) => {

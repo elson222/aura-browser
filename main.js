@@ -773,7 +773,7 @@ async function installExtensionFromPackage() {
       const pkgPath = filePaths[0];
       const tempExtId = 'pkg_' + Date.now();
       const destDir = path.join(extensionsDir, tempExtId);
-      crxLoader.extractCrx(pkgPath, destDir);
+      await crxLoader.extractCrx(pkgPath, destDir);
 
       const ext = await session.defaultSession.loadExtension(destDir, {
         allowFileAccess: true
@@ -796,7 +796,7 @@ async function installExtensionFromWebStore(inputUrlOrId) {
   try {
     const crxBuffer = await crxLoader.downloadCrxFromWebStore(extensionId);
     const destDir = path.join(extensionsDir, extensionId);
-    crxLoader.extractCrx(crxBuffer, destDir);
+    await crxLoader.extractCrx(crxBuffer, destDir);
 
     const ext = await session.defaultSession.loadExtension(destDir, {
       allowFileAccess: true
