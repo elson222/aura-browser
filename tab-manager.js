@@ -130,6 +130,17 @@ class TabManager {
       this.broadcastTabs();
     });
 
+    // Windows Hardware App Commands (Touchpad Swipes, Keyboard Media & Back/Forward Keys)
+    wc.on('app-command', (event, cmd) => {
+      if (cmd === 'browser-backward') {
+        event.preventDefault();
+        this.goBackActiveTab();
+      } else if (cmd === 'browser-forward') {
+        event.preventDefault();
+        this.goForwardActiveTab();
+      }
+    });
+
     // Native Right-Click Context Menu
     wc.on('context-menu', (event, params) => {
       event.preventDefault();

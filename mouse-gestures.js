@@ -213,8 +213,57 @@ function initMouseGestures(ipcRenderer) {
     }
   }
 
+  // Trackpad 2-Finger Horizontal Swipe Navigation (Swipe right to go back, swipe left to go forward)
+  let accumulatedDeltaX = 0;
+  let isNavigating = false;
+  let swipeDebounceTimer = null;
+
+  window.addEventListener('wheel', (e) => {
+    if (!gesturesEnabled) return;
+    // Only process horizontal swipes when there is dominant horizontal motion
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY) * 1.3 && Math.abs(e.deltaX) > 8) {
+      accumulatedDeltaX += e.deltaX;
+
+      if (swipeDebounceTimer) clearTimeout(swipeDebounceTimer);
+      swipeDebounceTimer = setTimeout(() => {
+        accumulatedDeltaX = 0;
+        isNavigating = false;
+      }, 250);
+
+      const atLeftEdge = window.scrollX <= 5;
+      const atRightEdge = window.scrollX + window.innerWidth >= (document.documentElement ? document.documentElement.scrollWidth - 5 : window.innerWidth);
+
+      if (!isNavigating) {
+        // Two fingers swiping right (deltaX < 0) -> Go Back
+        if (accumulatedDeltaX < -70 && atLeftEdge) {
+          isNavigating = true;
+          accumulatedDeltaX = 0;
+          ipcRenderer.send('trigger-action', 'go-back');
+        }
+        // Two fingers swiping left (deltaX > 0) -> Go Forward
+        else if (accumulatedDeltaX > 70 && atRightEdge) {
+          isNavigating = true;
+          accumulatedDeltaX = 0;
+          ipcRenderer.send('trigger-action', 'go-forward');
+        }
+      }
+    }
+  }, { passive: true });
+
   window.addEventListener('mousedown', (e) => {
     if (!gesturesEnabled) return;
+
+    // Side mouse buttons (Back = 3, Forward = 4)
+    if (e.button === 3) {
+      e.preventDefault();
+      ipcRenderer.send('trigger-action', 'go-back');
+      return;
+    } else if (e.button === 4) {
+      e.preventDefault();
+      ipcRenderer.send('trigger-action', 'go-forward');
+      return;
+    }
+
     if (e.button === 2) { // Right click
       createElements();
       resizeCanvas();
