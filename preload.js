@@ -45,6 +45,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onMediaDetected: (callback) => ipcRenderer.on('media-detected', (_event, data) => callback(data)),
   onDownloadsUpdated: (callback) => ipcRenderer.on('downloads-updated', (_event, data) => callback(data)),
 
+  // === Tabs ===
+  createTab: (url) => ipcRenderer.invoke('create-tab', url),
+  closeTab: (tabId) => ipcRenderer.invoke('close-tab', tabId),
+  switchTab: (tabId) => ipcRenderer.invoke('switch-tab', tabId),
+  getTabs: () => ipcRenderer.invoke('get-tabs'),
+  onTabsUpdated: (callback) => ipcRenderer.on('tabs-updated', (_event, data) => callback(data)),
+
   // === Settings & Stats ===
   getSettings: () => ipcRenderer.invoke('get-settings'),
   saveSetting: (key, value) => ipcRenderer.invoke('save-setting', { key, value }),

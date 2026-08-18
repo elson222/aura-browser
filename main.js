@@ -8,6 +8,9 @@ const downloadsModule = require('./downloads');
 const vpnModule = require('./vpn');
 const adblocker = require('./adblocker');
 const crxLoader = require('./crx-loader');
+const { TabManager } = require('./tab-manager');
+
+let tabManager = null;
 
 // User Preferences State
 let darkModeEnabled = true;
@@ -128,10 +131,15 @@ function createMainWindow() {
   });
 
   mainWindow.setMenu(null);
-  mainWindow.loadFile(path.join(__dirname, 'homepage.html'));
 
-  mainWindow.webContents.on('did-finish-load', () => {
-    applyAdBlockerCosmetics();
+  tabManager = new TabManager(mainWindow, adblocker, darkMode);
+  tabManager.createTab();
+
+  mainWindow.on('resize', () => {
+    if (tabManager && tabManager.getActiveTab()) {
+      const bounds = tabManager.getBounds();
+      tabManager.getActiveTab().view.setBounds(bounds);
+    }
   });
 
   mainWindow.on('closed', () => {
@@ -241,8 +249,46 @@ function createMainWindow() {
       return;
     }
 
-    // Ctrl+T or Ctrl+L — Search Omnibox
-    if (ctrl && !shift && (key === 't' || key === 'l')) {
+    // Ctrl+T -> New Tab
+    if (ctrl && !shift && key === 't') {
+      event.preventDefault();
+      if (tabManager) tabManager.createTab();
+      return;
+    }
+
+    // Ctrl+W -> Close Tab
+    if (ctrl && !shift && key === 'w') {
+      event.preventDefault();
+      if (tabManager && tabManager.activeTabId) tabManager.closeTab(tabManager.activeTabId);
+      return;
+    }
+
+    // Ctrl+Tab -> Next Tab
+    if (ctrl && !shift && input.key === 'Tab') {
+      event.preventDefault();
+      if (tabManager) tabManager.nextTab();
+      return;
+    }
+
+    // Ctrl+Shift+Tab -> Previous Tab
+    if (ctrl && shift && input.key === 'Tab') {
+      event.preventDefault();
+      if (tabManager) tabManager.prevTab();
+      return;
+    }
+
+    // Ctrl+1..9 -> Switch Tab
+    if (ctrl && !shift && !alt && key >= '1' && key <= '9') {
+      const idx = parseInt(key) - 1;
+      if (tabManager && tabManager.tabs[idx]) {
+        event.preventDefault();
+        tabManager.switchTab(tabManager.tabs[idx].id);
+        return;
+      }
+    }
+
+    // Ctrl+L — Search Omnibox
+    if (ctrl && !shift && key === 'l') {
       event.preventDefault();
       showSearchOverlay();
       return;
@@ -1037,10 +1083,36 @@ function parseSearchQuery(query) {
 // IPC COMMUNICATION
 // ============================================================
 
+// Tab Management IPC
+ipcMain.handle('create-tab', (event, url) => {
+  if (!tabManager) return null;
+  const tab = tabManager.createTab(url);
+  return tab ? tab.id : null;
+});
+
+ipcMain.handle('close-tab', (event, tabId) => {
+  if (!tabManager) return false;
+  tabManager.closeTab(tabId);
+  return true;
+});
+
+ipcMain.handle('switch-tab', (event, tabId) => {
+  if (!tabManager) return false;
+  tabManager.switchTab(tabId);
+  return true;
+});
+
+ipcMain.handle('get-tabs', () => {
+  if (!tabManager) return [];
+  return tabManager.getPublicTabs();
+});
+
 // Search Navigation
 ipcMain.on('perform-navigation', (event, query) => {
   const url = parseSearchQuery(query);
-  if (url && mainWindow) {
+  if (url && tabManager) {
+    tabManager.navigateActiveTab(url);
+  } else if (url && mainWindow) {
     mainWindow.loadURL(url);
   }
   hideSearchOverlay();

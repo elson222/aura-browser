@@ -1,5 +1,5 @@
 // Zen Browser Inspired Features for Aura Browser:
-// Split View, Workspaces, Web Panels (Quick Apps), Compact Glance Mode
+// Multi-Tab Management, Split View, Workspaces, Web Panels (Quick Apps)
 
 function initZenFeatures(ipcRenderer) {
   if (window !== window.top) return;
@@ -29,6 +29,22 @@ function initZenFeatures(ipcRenderer) {
         </svg>
       </div>
 
+      <!-- New Tab Action (Ctrl+T) -->
+      <div class="zen-section">
+        <div class="zen-btn highlight" id="zen-btn-newtab" title="New Tab (Ctrl+T)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+      </div>
+
+      <div class="zen-divider"></div>
+
+      <!-- Open Tabs List (Vertical Tabs) -->
+      <div class="zen-section zen-tabs-list" id="zen-tabs-container">
+        <!-- Injected Dynamically -->
+      </div>
+
+      <div class="zen-divider"></div>
+
       <!-- Workspaces Switcher -->
       <div class="zen-section">
         <div class="zen-btn active" id="zen-ws-personal" title="Workspace: Personal">
@@ -52,7 +68,7 @@ function initZenFeatures(ipcRenderer) {
         <div class="zen-btn" id="zen-app-notes" title="Quick Notes Scratchpad">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/></svg>
         </div>
-        <div class="zen-btn" id="zen-app-split" title="Omnibox Search (Ctrl+T)">
+        <div class="zen-btn" id="zen-app-split" title="Omnibox Search (Ctrl+L)">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </div>
       </div>
@@ -153,19 +169,28 @@ function initZenFeatures(ipcRenderer) {
       flex-direction: column !important;
       align-items: center !important;
       padding: 16px 0 !important;
-      gap: 12px !important;
+      gap: 10px !important;
     }
 
     .zen-brand {
       color: #ffffff !important;
       opacity: 0.9 !important;
-      margin-bottom: 4px !important;
+      margin-bottom: 2px !important;
     }
 
     .zen-section {
       display: flex !important;
       flex-direction: column !important;
-      gap: 8px !important;
+      gap: 6px !important;
+      width: 100% !important;
+      align-items: center !important;
+    }
+
+    .zen-tabs-list {
+      max-height: 180px !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      padding: 2px 0 !important;
     }
 
     .zen-divider {
@@ -191,6 +216,7 @@ function initZenFeatures(ipcRenderer) {
       transition: all 0.15s ease !important;
       background: transparent !important;
       border: 1px solid transparent !important;
+      position: relative !important;
     }
 
     .zen-btn:hover {
@@ -199,11 +225,48 @@ function initZenFeatures(ipcRenderer) {
       border-color: rgba(255, 255, 255, 0.15) !important;
     }
 
-    .zen-btn.active {
-      background: rgba(255, 255, 255, 0.12) !important;
+    .zen-btn.highlight {
+      background: rgba(255, 255, 255, 0.06) !important;
       color: #ffffff !important;
-      border-color: rgba(255, 255, 255, 0.25) !important;
-      box-shadow: 0 0 12px rgba(255, 255, 255, 0.08) !important;
+    }
+
+    .zen-btn.highlight:hover {
+      background: rgba(255, 255, 255, 0.18) !important;
+      transform: scale(1.05) !important;
+    }
+
+    .zen-btn.active {
+      background: rgba(255, 255, 255, 0.14) !important;
+      color: #ffffff !important;
+      border-color: rgba(255, 255, 255, 0.3) !important;
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .tab-badge-num {
+      font-size: 11px !important;
+      font-weight: 700 !important;
+      color: inherit !important;
+    }
+
+    .tab-close-icon {
+      position: absolute !important;
+      top: -2px !important;
+      right: -2px !important;
+      width: 14px !important;
+      height: 14px !important;
+      background: #ef4444 !important;
+      color: #ffffff !important;
+      border-radius: 50% !important;
+      display: none !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: 9px !important;
+      font-weight: 900 !important;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5) !important;
+    }
+
+    .zen-btn:hover .tab-close-icon {
+      display: flex !important;
     }
 
     /* Drawer */
@@ -307,7 +370,54 @@ function initZenFeatures(ipcRenderer) {
     ipcRenderer.on('toggle-zen-dock', toggleDock);
   }
 
-  // Split / Omnibox Button
+  // New Tab Button
+  document.getElementById('zen-btn-newtab')?.addEventListener('click', () => {
+    if (ipcRenderer && ipcRenderer.invoke) {
+      ipcRenderer.invoke('create-tab');
+    }
+  });
+
+  // Render Tabs in Zen Dock
+  function updateTabsList(tabs) {
+    const container = document.getElementById('zen-tabs-container');
+    if (!container || !Array.isArray(tabs)) return;
+
+    container.innerHTML = '';
+    tabs.forEach((t, idx) => {
+      const tabEl = document.createElement('div');
+      tabEl.className = 'zen-btn' + (t.isActive ? ' active' : '');
+      tabEl.title = `${t.title} (Ctrl+${idx + 1})`;
+      tabEl.innerHTML = `
+        <span class="tab-badge-num">${idx + 1}</span>
+        <span class="tab-close-icon" title="Close Tab (Ctrl+W)">✕</span>
+      `;
+
+      tabEl.addEventListener('click', (e) => {
+        if (e.target.classList.contains('tab-close-icon')) {
+          e.stopPropagation();
+          ipcRenderer.invoke('close-tab', t.id);
+        } else {
+          ipcRenderer.invoke('switch-tab', t.id);
+        }
+      });
+
+      container.appendChild(tabEl);
+    });
+  }
+
+  if (ipcRenderer && ipcRenderer.on) {
+    ipcRenderer.on('tabs-updated', (_event, tabs) => {
+      updateTabsList(tabs);
+    });
+  }
+
+  if (ipcRenderer && ipcRenderer.invoke) {
+    ipcRenderer.invoke('get-tabs').then(tabs => {
+      if (tabs) updateTabsList(tabs);
+    }).catch(() => {});
+  }
+
+  // Split / Omnibox Button (Ctrl+L)
   document.getElementById('zen-app-split').addEventListener('click', () => {
     ipcRenderer.send('trigger-action', 'search');
   });

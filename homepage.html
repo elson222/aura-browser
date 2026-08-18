@@ -445,6 +445,10 @@
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         Shields Active
       </span>
+      <button class="dock-btn" id="dockNewTab">
+        <span>New Tab</span>
+        <kbd>Ctrl+T</kbd>
+      </button>
       <button class="dock-btn" id="dockHistory">
         <span>History</span>
         <kbd>Ctrl+H</kbd>
@@ -491,6 +495,12 @@
           window.location.href = url;
         }
       });
+    });
+
+    document.getElementById('dockNewTab')?.addEventListener('click', () => {
+      if (window.electronAPI && window.electronAPI.createTab) {
+        window.electronAPI.createTab();
+      }
     });
 
     document.getElementById('dockHistory').addEventListener('click', () => {
