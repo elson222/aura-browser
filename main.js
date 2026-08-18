@@ -759,10 +759,14 @@ async function installExtensionFromWebStore(inputUrlOrId) {
 
 function removeExtension(extensionId) {
   try {
-    session.defaultSession.removeExtension(extensionId);
-    const extDir = path.join(extensionsDir, extensionId);
-    if (fs.existsSync(extDir)) {
-      fs.rmSync(extDir, { recursive: true, force: true });
+    if (!extensionId || typeof extensionId !== 'string') return false;
+    const safeId = extensionId.replace(/[^a-zA-Z0-9_\-]/g, '');
+    session.defaultSession.removeExtension(safeId);
+    const extDir = path.join(extensionsDir, safeId);
+    const resolvedExtDir = path.resolve(extDir);
+    const resolvedBase = path.resolve(extensionsDir);
+    if (resolvedExtDir.startsWith(resolvedBase) && fs.existsSync(resolvedExtDir)) {
+      fs.rmSync(resolvedExtDir, { recursive: true, force: true });
     }
     return true;
   } catch {
@@ -776,11 +780,14 @@ function loadSavedExtensions() {
     const dirs = fs.readdirSync(extensionsDir);
     for (const dir of dirs) {
       const extPath = path.join(extensionsDir, dir);
-      if (fs.statSync(extPath).isDirectory()) {
-        try {
-          session.defaultSession.loadExtension(extPath, { allowFileAccess: true });
-        } catch (err) {
-          console.error(`Failed to load extension ${dir}:`, err.message);
+      if (fs.existsSync(extPath) && fs.statSync(extPath).isDirectory()) {
+        const manifestPath = path.join(extPath, 'manifest.json');
+        if (fs.existsSync(manifestPath)) {
+          try {
+            session.defaultSession.loadExtension(extPath, { allowFileAccess: false });
+          } catch (err) {
+            console.error(`Failed to load extension ${dir}:`, err.message);
+          }
         }
       }
     }
