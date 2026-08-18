@@ -1514,15 +1514,9 @@ app.whenReady().then(() => {
   loadUserData();
   nativeTheme.themeSource = darkModeEnabled ? 'dark' : 'light';
 
-  // Clean Chrome User-Agent (Strips Electron identifier for 100% web compatibility)
-  const defaultUA = session.defaultSession.getUserAgent();
-  const cleanUA = defaultUA
-    .replace(/Electron\/\S+\s?/g, '')
-    .replace(/fullscreen-browser\/\S+\s?/g, '')
-    .replace(/aura-browser\/\S+\s?/g, '')
-    .replace(/Aura Browser\/\S+\s?/g, '')
-    .trim();
-  session.defaultSession.setUserAgent(cleanUA);
+  // Modern Chrome User-Agent (Strips Electron tags and presents latest Chrome 131 compatibility)
+  const modernChromeUA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
+  session.defaultSession.setUserAgent(modernChromeUA);
 
   // Windows transparency registry hint
   if (process.platform === 'win32') {
