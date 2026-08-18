@@ -119,6 +119,56 @@ class TabManager {
           return;
         }
       }
+
+      // Ctrl + L -> Omnibox Search
+      if (ctrl && !shift && key === 'l') {
+        event.preventDefault();
+        const { ipcMain } = require('electron');
+        if (this.mainWindow) this.mainWindow.webContents.send('trigger-action', 'search');
+        return;
+      }
+
+      // Ctrl + E -> Extensions Manager
+      if (ctrl && !shift && key === 'e') {
+        event.preventDefault();
+        if (this.mainWindow) this.mainWindow.webContents.send('trigger-action', 'extensions');
+        return;
+      }
+
+      // Ctrl + B -> Toggle Zen Sidebar
+      if (ctrl && !shift && key === 'b') {
+        event.preventDefault();
+        wc.send('toggle-zen-dock');
+        return;
+      }
+
+      // Ctrl + , -> Settings
+      if (ctrl && !shift && input.key === ',') {
+        event.preventDefault();
+        if (this.mainWindow) this.mainWindow.webContents.send('trigger-action', 'settings');
+        return;
+      }
+
+      // Ctrl + J -> Downloads
+      if (ctrl && !shift && key === 'j') {
+        event.preventDefault();
+        if (this.mainWindow) this.mainWindow.webContents.send('trigger-action', 'downloads');
+        return;
+      }
+
+      // Ctrl + R or F5 -> Reload
+      if ((ctrl && !shift && key === 'r') || key === 'f5') {
+        event.preventDefault();
+        wc.reload();
+        return;
+      }
+
+      // Ctrl + Shift + R -> Hard Reload
+      if (ctrl && shift && key === 'r') {
+        event.preventDefault();
+        wc.reloadIgnoringCache();
+        return;
+      }
     });
 
     // Load initial content

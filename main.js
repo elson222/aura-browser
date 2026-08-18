@@ -1387,8 +1387,10 @@ ipcMain.on('trigger-action', (event, action) => {
   else if (action === 'downloads') showDownloadsManager();
   else if (action === 'extensions') showExtensionsOverlay();
   else if (action === 'settings') showSettingsOverlay();
-  else if (action === 'reload') mainWindow.webContents.reload();
-  else if (action === 'home') mainWindow.loadFile(path.join(__dirname, 'homepage.html'));
+  else if (action === 'new-tab') { if (tabManager) tabManager.createTab(); }
+  else if (action === 'close-tab') { if (tabManager) tabManager.closeTab(tabManager.activeTabId); }
+  else if (action === 'reload') { if (tabManager) tabManager.reloadActiveTab(); else mainWindow.webContents.reload(); }
+  else if (action === 'home') { if (tabManager) tabManager.navigateActiveTab('homepage'); else mainWindow.loadFile(path.join(__dirname, 'homepage.html')); }
   else if (action === 'toggle-adblock') {
     adBlockerEnabled = !adBlockerEnabled;
     saveUserData();
