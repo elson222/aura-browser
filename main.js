@@ -1501,6 +1501,16 @@ app.whenReady().then(() => {
   loadUserData();
   nativeTheme.themeSource = darkModeEnabled ? 'dark' : 'light';
 
+  // Clean Chrome User-Agent (Strips Electron identifier for 100% web compatibility)
+  const defaultUA = session.defaultSession.getUserAgent();
+  const cleanUA = defaultUA
+    .replace(/Electron\/\S+\s?/g, '')
+    .replace(/fullscreen-browser\/\S+\s?/g, '')
+    .replace(/aura-browser\/\S+\s?/g, '')
+    .replace(/Aura Browser\/\S+\s?/g, '')
+    .trim();
+  session.defaultSession.setUserAgent(cleanUA);
+
   // Windows transparency registry hint
   if (process.platform === 'win32') {
     const { exec } = require('child_process');
