@@ -1390,39 +1390,53 @@ ipcMain.on('retry-download', (event, id) => {
 });
 
 // Global Trigger Actions
-ipcMain.on('trigger-action', (event, action) => {
-  if (!mainWindow) return;
+function triggerGlobalAction(action) {
   if (action === 'search') showSearchOverlay();
   else if (action === 'downloads') showDownloadsManager();
   else if (action === 'extensions') showExtensionsOverlay();
   else if (action === 'settings') showSettingsOverlay();
   else if (action === 'new-tab') { if (tabManager) tabManager.createTab(); }
   else if (action === 'close-tab') { if (tabManager) tabManager.closeTab(tabManager.activeTabId); }
-  else if (action === 'reload') { if (tabManager) tabManager.reloadActiveTab(); else mainWindow.webContents.reload(); }
-  else if (action === 'home') { if (tabManager) tabManager.navigateActiveTab('homepage'); else mainWindow.loadFile(path.join(__dirname, 'homepage.html')); }
+  else if (action === 'restore-tab') { if (tabManager) tabManager.restoreClosedTab(); }
+  else if (action === 'reload') { if (tabManager) tabManager.reloadActiveTab(); }
+  else if (action === 'home') { if (tabManager) tabManager.navigateActiveTab('homepage'); }
   else if (action === 'toggle-adblock') {
     adBlockerEnabled = !adBlockerEnabled;
     saveUserData();
     applyAdBlockerCosmetics();
-    mainWindow.webContents.send('settings-changed', { adBlockerEnabled });
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('settings-changed', { adBlockerEnabled });
+    }
   }
   else if (action === 'zoom-in') {
-    const level = mainWindow.webContents.getZoomLevel();
-    mainWindow.webContents.setZoomLevel(Math.min(level + 0.5, 5));
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      const level = mainWindow.webContents.getZoomLevel();
+      mainWindow.webContents.setZoomLevel(Math.min(level + 0.5, 5));
+    }
   }
   else if (action === 'zoom-out') {
-    const level = mainWindow.webContents.getZoomLevel();
-    mainWindow.webContents.setZoomLevel(Math.max(level - 0.5, -5));
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      const level = mainWindow.webContents.getZoomLevel();
+      mainWindow.webContents.setZoomLevel(Math.max(level - 0.5, -5));
+    }
   }
   else if (action === 'print') {
-    mainWindow.webContents.print();
+    if (tabManager && tabManager.getActiveTab()) {
+      tabManager.getActiveTab().view.webContents.print();
+    }
   }
   else if (action === 'optimize-drivers') {
     const { exec } = require('child_process');
     const scriptPath = path.join(app.getAppPath(), 'install_drivers.ps1');
     exec(`powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process powershell -ArgumentList '-NoExit -ExecutionPolicy Bypass -File \\\"${scriptPath}\\\"' -Verb RunAs"`);
   }
+}
+
+ipcMain.on('trigger-action', (event, action) => {
+  triggerGlobalAction(action);
 });
+
+module.exports = { triggerGlobalAction };
 
 ipcMain.on('cancel-popup', () => {
   if (downloadPopupWindow) downloadPopupWindow.hide();

@@ -10,10 +10,11 @@ class TabManager {
     this.tabs = []; // Array of { id, title, url, view, favicon }
     this.activeTabId = null;
     this.tabCounter = 0;
+    this.closedTabsHistory = []; // Stack for Ctrl+Shift+T restore
   }
 
   getBounds() {
-    if (!this.mainWindow || this.mainWindow.isDestroyed()) return { width: 1920, height: 1080 };
+    if (!this.mainWindow || this.mainWindow.isDestroyed()) return { x: 0, y: 0, width: 1920, height: 1080 };
     const [width, height] = this.mainWindow.getSize();
     return { x: 0, y: 0, width, height };
   }
@@ -92,6 +93,16 @@ class TabManager {
       }
     });
 
+    // Crash Recovery
+    wc.on('render-process-gone', (event, details) => {
+      console.warn(`Tab ${tab.id} crashed (${details.reason}). Attempting recovery...`);
+      if (details.reason !== 'clean-exit' && !wc.isDestroyed()) {
+        setTimeout(() => {
+          try { wc.reload(); } catch (e) {}
+        }, 500);
+      }
+    });
+
     wc.on('page-title-updated', (_e, title) => {
       tab.title = title || 'Aura Tab';
       this.broadcastTabs();
@@ -127,6 +138,13 @@ class TabManager {
       const shift = input.shift;
       const alt = input.alt;
 
+      // Ctrl + Shift + T -> Restore Closed Tab
+      if (ctrl && shift && key === 't') {
+        event.preventDefault();
+        this.restoreClosedTab();
+        return;
+      }
+
       // Ctrl + T -> New Tab
       if (ctrl && !shift && key === 't') {
         event.preventDefault();
@@ -155,8 +173,8 @@ class TabManager {
         return;
       }
 
-      // Ctrl + 1..9 -> Switch Tab
-      if (ctrl && !shift && !alt && key >= '1' && key <= '9') {
+      // Ctrl + 1..8 -> Switch Tab 1..8
+      if (ctrl && !shift && !alt && key >= '1' && key <= '8') {
         const index = parseInt(key) - 1;
         if (this.tabs[index]) {
           event.preventDefault();
@@ -165,18 +183,46 @@ class TabManager {
         }
       }
 
-      // Ctrl + L -> Omnibox Search
+      // Ctrl + 9 -> Switch to Last Tab
+      if (ctrl && !shift && !alt && key === '9') {
+        event.preventDefault();
+        if (this.tabs.length > 0) {
+          this.switchTab(this.tabs[this.tabs.length - 1].id);
+          return;
+        }
+      }
+
+      // Alt + Left -> Back
+      if (alt && !ctrl && input.key === 'ArrowLeft') {
+        event.preventDefault();
+        this.goBackActiveTab();
+        return;
+      }
+
+      // Alt + Right -> Forward
+      if (alt && !ctrl && input.key === 'ArrowRight') {
+        event.preventDefault();
+        this.goForwardActiveTab();
+        return;
+      }
+
+      // Ctrl + L -> Omnibox Search HUD
       if (ctrl && !shift && key === 'l') {
         event.preventDefault();
-        const { ipcMain } = require('electron');
-        if (this.mainWindow) this.mainWindow.webContents.send('trigger-action', 'search');
+        if (this.mainWindow) {
+          const { triggerGlobalAction } = require('./main');
+          if (triggerGlobalAction) triggerGlobalAction('search');
+        }
         return;
       }
 
       // Ctrl + E -> Extensions Manager
       if (ctrl && !shift && key === 'e') {
         event.preventDefault();
-        if (this.mainWindow) this.mainWindow.webContents.send('trigger-action', 'extensions');
+        if (this.mainWindow) {
+          const { triggerGlobalAction } = require('./main');
+          if (triggerGlobalAction) triggerGlobalAction('extensions');
+        }
         return;
       }
 
@@ -190,14 +236,20 @@ class TabManager {
       // Ctrl + , -> Settings
       if (ctrl && !shift && input.key === ',') {
         event.preventDefault();
-        if (this.mainWindow) this.mainWindow.webContents.send('trigger-action', 'settings');
+        if (this.mainWindow) {
+          const { triggerGlobalAction } = require('./main');
+          if (triggerGlobalAction) triggerGlobalAction('settings');
+        }
         return;
       }
 
       // Ctrl + J -> Downloads
       if (ctrl && !shift && key === 'j') {
         event.preventDefault();
-        if (this.mainWindow) this.mainWindow.webContents.send('trigger-action', 'downloads');
+        if (this.mainWindow) {
+          const { triggerGlobalAction } = require('./main');
+          if (triggerGlobalAction) triggerGlobalAction('downloads');
+        }
         return;
       }
 
@@ -251,6 +303,12 @@ class TabManager {
 
     const tab = this.tabs[index];
 
+    // Save to closed history stack for Ctrl+Shift+T restore
+    if (tab.url && !tab.url.startsWith('file://')) {
+      this.closedTabsHistory.push({ url: tab.url, title: tab.title });
+      if (this.closedTabsHistory.length > 30) this.closedTabsHistory.shift();
+    }
+
     // If only 1 tab remaining, reset it to homepage instead of closing whole app
     if (this.tabs.length === 1) {
       tab.view.webContents.loadFile(path.join(__dirname, 'homepage.html'));
@@ -280,6 +338,30 @@ class TabManager {
     } else {
       this.broadcastTabs();
     }
+  }
+
+  restoreClosedTab() {
+    if (this.closedTabsHistory.length === 0) return null;
+    const lastClosed = this.closedTabsHistory.pop();
+    if (lastClosed && lastClosed.url) {
+      return this.createTab(lastClosed.url);
+    }
+    return null;
+  }
+
+  duplicateTab(tabId) {
+    const tab = this.tabs.find(t => t.id === tabId);
+    if (tab && tab.url) {
+      return this.createTab(tab.url);
+    }
+    return null;
+  }
+
+  reorderTab(fromIndex, toIndex) {
+    if (fromIndex < 0 || fromIndex >= this.tabs.length || toIndex < 0 || toIndex >= this.tabs.length) return;
+    const [moved] = this.tabs.splice(fromIndex, 1);
+    this.tabs.splice(toIndex, 0, moved);
+    this.broadcastTabs();
   }
 
   nextTab() {
@@ -344,10 +426,14 @@ class TabManager {
     wc.loadURL(url);
   }
 
-  reloadActiveTab() {
+  reloadActiveTab(bypassCache = false) {
     const tab = this.getActiveTab();
     if (tab && !tab.view.webContents.isDestroyed()) {
-      tab.view.webContents.reload();
+      if (bypassCache) {
+        tab.view.webContents.reloadIgnoringCache();
+      } else {
+        tab.view.webContents.reload();
+      }
     }
   }
 
